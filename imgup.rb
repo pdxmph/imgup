@@ -9,6 +9,7 @@ require 'oauth'
 require 'oauth/consumer'
 
 config_file 'settings.yaml'
+
 set :haml, { escape_html: false }
 set :sessions, true
 
@@ -29,7 +30,7 @@ before do
     :request_token_path => '/services/oauth/1.0a/getRequestToken',
     :access_token_path =>  '/services/oauth/1.0a/getAccessToken',
     :authorize_path =>  '/services/oauth/1.0a/authorize',
-    :callback_url => 'http://localhost:4567/callback'
+    :oauth_callback => 'http://localhost:4567/'
   }
   
   if !session[:oauth][:request_token].nil? && !session[:oauth][:request_token_secret].nil?
@@ -49,7 +50,7 @@ get "/" do
   end
 end
 
-get '/callback', { provides: 'html' } do
+get '/auth', { provides: 'html' } do
   haml :index
 end
 
