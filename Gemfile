@@ -1,10 +1,10 @@
 source 'https://rubygems.org'
 
+gem 'dotenv'
+gem 'exif'
 gem 'haml'
 gem 'puma'
+gem 'rest-client'
 gem 'sinatra'
 gem 'sinatra-contrib'
-gem 'rest-client'
-gem 'exif'
 gem 'typhoeus'
-gem 'dotenv'
