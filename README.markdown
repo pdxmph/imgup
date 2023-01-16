@@ -1,4 +1,4 @@
-![Screenshot of imgup displaying a recently uploaded file.](https://www.puddingtime.org/cdn-cgi/imagedelivery/DdOif196F8bRAxm9Zks1Dg/20230116/--img_up_screenshot.jpg/public)
+![Screenshot of imgup displaying a recently uploaded file.](https://www.puddingtime.org/cdn-cgi/imagedelivery/DdOif196F8bRAxm9Zks1Dg/20230116/--img_up_screenshot.jpg/blog)
 
 # Up and running
 
