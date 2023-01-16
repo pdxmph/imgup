@@ -101,7 +101,8 @@
          imgup
       %p An image management tool
       
-      = haml :"_partials/app_nav"
+      - unless request.path_info == "/"
+        = haml :"_partials/app_nav"
           
     %main
       

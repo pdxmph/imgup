@@ -1,2 +1,5 @@
-%h2
-  It's Our Index
+%form{action: "/upload_cloudflare", enctype: "multipart/form-data", method: "POST"}
+  %input{name: "alt", type: "text", value: "Enter alt text", style: "width:75%;margin-bottom:2rem;"}/
+  %br
+  %input{name: "file", type: "file"}/
+  %input{type: "submit", value: "Upload", :style => "background-color: var(--ctp-mocha-red);"}/
