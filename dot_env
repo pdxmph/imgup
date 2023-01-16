@@ -1,0 +1,24 @@
+# Change the variables to suit and rename to `.env`
+# `.env` is in .gitignore. Never check .env into source control
+
+# Where are the images going to be served from? 
+# Use any domain proxied by CloudFlare
+DISTRO_DOMAIN=www.example.com
+
+# Secret API key
+CLOUDFLARE_TOKEN=
+
+# Find these under Developer Resources in the Cloudflare images tab
+CLOUDFLARE_ACCOUNT=
+CLOUDFLARE_ACCOUNT_HASH=
+
+# Choose only one of the two following: 
+
+# If you're using Cloudflare URLs to deliver images uncomment this line
+#BASE_IMG_URL="https://imagedelivery.net/${CLOUDFLARE_ACCOUNT_HASH}"
+
+# If you're using a custom domain uncomment this line
+BASE_IMG_URL="https://${DISTRO_DOMAIN}/cdn-cgi/imagedelivery/${CLOUDFLARE_ACCOUNT_HASH}"
+
+# Composed variables. Shouldn't need to touch these unless there's an API change
+BASE_URL="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT}/images/v1"

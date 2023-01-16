@@ -1,33 +1,28 @@
 #!/usr/bin/env ruby
 require 'sinatra'
-require 'haml'
 require 'puma'
-require 'sinatra/config_file'
+require 'dotenv/load'
+require 'haml'
 require 'json'
-require 'rest-client'
 require 'typhoeus'
 require 'exif'
 include FileUtils::Verbose
 
-# you'll need to edit and rename the example_settings.yaml to make this file
-config_file 'settings.yaml'
-
 set :haml, { escape_html: false }
 set :sessions, true
 
-# get our secrets out of the YAML file we promise we won't ever commit
-cloudflare_account = settings.cloudflare_account
-cloudflare_token = settings.cloudflare_token
-cloudflare_account_hash = settings.cloudflare_account_hash
+# get our variables out of .env
+cloudflare_account = ENV['CLOUDFLARE_ACCOUNT']
+cloudflare_token = ENV['CLOUDFLARE_TOKEN']
+cloudflare_account_hash = ENV['CLOUDFLARE_ACCOUNT_HASH']
 
 # the base API URL
-base_url = "https://api.cloudflare.com/client/v4/accounts/#{cloudflare_account}/images/v1"
+base_url = ENV['BASE_URL']
 
 # the base url for images -- this one varies from the API docs because it is using a custom domain
 # Cloudflare will use any domain it proxies for you
-base_img_url = "https://www.puddingtime.org/cdn-cgi/imagedelivery/#{cloudflare_account_hash}"
+base_img_url = ENV['BASE_IMG_URL']
 
-# TODO put the normal base url in here
 
 get "/", { provides: 'html' } do
   haml :index
