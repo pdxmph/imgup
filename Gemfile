@@ -4,5 +4,5 @@ gem 'haml'
 gem 'puma'
 gem 'sinatra'
 gem 'sinatra-contrib'
-gem 'oauth'
+gem 'rest-client'
 
