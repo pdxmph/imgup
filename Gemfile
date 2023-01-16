@@ -1,6 +1,9 @@
 source 'https://rubygems.org'
 
-gem 'dotenv'
+group  :development do
+  gem 'dotenv'
+end
+
 gem 'exif'
 gem 'haml'
 gem 'puma'

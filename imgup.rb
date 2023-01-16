@@ -1,12 +1,15 @@
 #!/usr/bin/env ruby
 require 'sinatra'
 require 'puma'
-require 'dotenv/load'
 require 'haml'
 require 'json'
 require 'typhoeus'
 require 'exif'
 include FileUtils::Verbose
+
+unless ENV['APP_ENV'] == 'production'
+  require 'dotenv/load'
+end
 
 set :haml, { escape_html: false }
 set :sessions, true
