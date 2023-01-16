@@ -11,6 +11,9 @@ unless ENV['APP_ENV'] == 'production'
   require 'dotenv/load'
 end
 
+run_dir = File.dirname(__FILE__)
+run_dir = Dir.pwd if (run_dir == '.')
+
 set :haml, { escape_html: false }
 set :sessions, true
 
@@ -38,10 +41,10 @@ end
 post '/upload_cloudflare' do
     tempfile = params[:file][:tempfile] 
     filename = params[:file][:filename] 
-    cp(tempfile.path, "public/uploads/#{filename}")
+    cp(tempfile.path, "tmp/#{filename}")
     
   begin
-    exif_data = Exif::Data.new(File.open("public/uploads/#{filename}"))
+    exif_data = Exif::Data.new(File.open("tmp/#{filename}"))
     exif_model = exif_data.model
     exif_make = exif_data.make
     exif_camera = "#{exif_make}-#{exif_model}".downcase.strip.gsub(' ', '-').gsub(/[^\w-]/, '')
@@ -56,13 +59,14 @@ begin
     headers: {:authorization => "Bearer #{cloudflare_token}"},
     body: {
       id: "#{date_path}/#{exif_camera}-#{filename}",
-      file: File.open("public/uploads/#{filename}","r")
+      file: File.open("tmp/#{filename}","r")
     }
   )
     @resp = JSON.parse(post.body)
     res = @resp['result']
     img_id = @resp['result']['id']
     img_url = "#{base_img_url}/#{img_id}"
+    File.delete(run_dir + "/tmp/#{filename}")
     redirect "/post_image/#{filename}?img_url=#{img_url}"
   rescue => error
     if error.message.match("Resource already exists")
