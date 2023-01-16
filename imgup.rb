@@ -47,6 +47,8 @@ post '/upload_cloudflare' do
   end
   
   date_path = Date.today.strftime("%Y%m%d")
+
+begin
   post = Typhoeus.post(base_url,
     headers: {:authorization => "Bearer #{cloudflare_token}"},
     body: {
@@ -54,11 +56,18 @@ post '/upload_cloudflare' do
       file: File.open("public/uploads/#{filename}","r")
     }
   )
-  @resp = JSON.parse(post.body)
-  res = @resp['result']
-  img_id = @resp['result']['id']
-  img_url = "#{base_img_url}/#{img_id}"
-  redirect "/post_image/#{filename}?img_url=#{img_url}"
+    @resp = JSON.parse(post.body)
+    res = @resp['result']
+    img_id = @resp['result']['id']
+    img_url = "#{base_img_url}/#{img_id}"
+    redirect "/post_image/#{filename}?img_url=#{img_url}"
+  rescue => error
+    if error.message.match("Resource already exists")
+      redirect "/error?resp=This image was already uploaded"
+    else
+      redirect "/error?resp=#{error.message}"
+    end
+  end
 end
 
 get '/image/:image', { provides: 'html' } do
@@ -69,4 +78,9 @@ end
 get '/post_image/:image', { provides: 'html' } do
     @image = params[:image].to_s
     haml :post_image
+end
+
+get '/error', { provides: 'html'} do
+  @resp = params['resp']
+  haml :error
 end
