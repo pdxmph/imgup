@@ -96,9 +96,10 @@
       }
   %body
     %header
-      %h1.weblog-title
-        %i.fa-image.fa-solid.meteor
-         imgup
+      %a{:href => "/"}
+        %h1.weblog-title
+          %i.fa-image.fa-solid.meteor
+           imgup
       %p An image management tool
       
       - unless request.path_info == "/"
