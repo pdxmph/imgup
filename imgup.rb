@@ -39,6 +39,7 @@ get '/upload', { provides: 'html' } do
 end
 
 post '/upload_cloudflare' do
+    alt_text = params[:alt]
     tempfile = params[:file][:tempfile] 
     filename = params[:file][:filename] 
     cp(tempfile.path, "tmp/#{filename}")
@@ -67,7 +68,7 @@ begin
     img_id = @resp['result']['id']
     img_url = "#{base_img_url}/#{img_id}"
     File.delete(run_dir + "/tmp/#{filename}")
-    redirect "/post_image/#{filename}?img_url=#{img_url}"
+    redirect "/post_image/#{filename}?img_url=#{img_url}&alt=#{alt_text}"
   rescue => error
     if error.message.match("Resource already exists")
       redirect "/error?resp=This image was already uploaded"

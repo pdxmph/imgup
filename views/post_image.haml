@@ -1,16 +1,17 @@
 -img_url = params['img_url']
+-alt = params['alt']
 
 .row
   .column-left
     %h3
       %i.fa-brands.fa-markdown
     %textarea{:style => "float:left;height:6em;margin-bottom:3rem;"}
-      = "![alt_text_here](#{img_url}/public)"
+      = "![#{alt}](#{img_url}/public)"
 
     %h3{:style => "clear:left;"}
       %i.fa-solid.fa-code
     %textarea{:style => "float:left;height:6em;margin-bottom:3rem;"}
-      = "<img src='#{img_url}/public' alt='alt_text_here' />"
+      = "<img src='#{img_url}/public' alt='#{alt}' />"
     %br/
         
   .column-right
