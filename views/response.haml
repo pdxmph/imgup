@@ -1,0 +1,17 @@
+%h2
+  Response Page
+
+- tn_url = @image['Response']['Image']['ThumbnailUrl']
+
+%img{:src => tn_url}
+
+%pre{style: "color:white;"}
+  = JSON.pretty_generate(@resp)
+
+
+%pre{style: "color:white;"}
+  = @img_uri
+
+%pre{style: "color:white;"}
+  
+  = JSON.pretty_generate(@image)

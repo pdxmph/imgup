@@ -1,5 +1,17 @@
-%form{action: "/upload_cloudflare", enctype: "multipart/form-data", method: "POST"}
-  %input{name: "alt", type: "text", value: "Enter alt text", style: "width:75%;margin-bottom:2rem;"}/
-  %br
-  %input{name: "file", type: "file"}/
-  %input{type: "submit", value: "Upload", :style => "background-color: var(--ctp-mocha-red);"}/
+- if @access_token
+  %form{action: "/upload_smugmug", enctype: "multipart/form-data", method: "POST"}
+    %input{name: "title", type: "text", value: "Enter a title", 
+           style: "width:75%;margin-bottom:2rem;"}/
+    %br
+    %input{name: "caption", type: "text", value: "Enter a caption (we'll use it as alt text)", 
+           style: "width:75%;margin-bottom:2rem;"}/
+    %br
+    %input{name: "file", type: "file"}/
+    %input{type: "submit", value: "Upload", :style => "background-color: var(--ctp-mocha-red);"}/
+
+-else 
+  %button{:style => "background-color: var(--ctp-mocha-red);"}
+    %i.fa-solid.fa-passport
+    %a{href: "/request", :style => "color:black;font-family:'Fira Mono';"}
+      Sign in to Smugmug
+    
