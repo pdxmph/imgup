@@ -39,9 +39,9 @@ sm_access_token_secret = ENV['SMUGMUG_ACCESS_TOKEN_SECRET']
 before do
   session[:oauth] ||= {}  
   # comment out this line if you don't have your access token
-  session[:oauth][:access_token] = sm_access_token
+  # session[:oauth][:access_token] = sm_access_token
   # comment out this line if you don't have your access token
-  session[:oauth][:access_token_secret] = sm_access_token_secret
+  # session[:oauth][:access_token_secret] = sm_access_token_secret
   @consumer ||=OAuth::Consumer.new smugmug_token,smugmug_secret, {
     :site => "https://api.smugmug.com",
     :request_token_path => '/services/oauth/1.0a/getRequestToken',
@@ -77,7 +77,7 @@ get "/auth" do
   @access_token = @request_token.get_access_token :oauth_verifier => params[:oauth_verifier]
   session[:oauth][:access_token] = @access_token.token
   session[:oauth][:access_token_secret] = @access_token.secret
-  redirect '/'
+  redirect '/tokens'
 end
 
 # we go here to z out our oauth state
@@ -98,6 +98,8 @@ end
 # this is a little cargo-culty -- rather than teeing up a big Typhoeus thing, 
 # you can use the access token's `get` method. 
 # TODO: Check out the headers syntax for that
+# Yup. Looks like this:
+# @response = @token.post('/people', @person.to_xml, { 'Accept'=>'application/xml', 'Content-Type' => 'application/xml' })
  
 post '/upload_smugmug' do 
   tempfile = params[:file][:tempfile] 
@@ -135,7 +137,26 @@ post '/upload_smugmug' do
   image = JSON.parse(req.response.response_body)['Image']
   session[:image] = image
 
-  redirect "/response"
+
+  redirect "/post_image"
+end
+
+# This is just to help see what comes back for elsewhere
+get '/post_image', { provides: 'html' } do 
+  @image = session[:image]
+  image_uri = @image['ImageUri']
+  
+  image_path = "https://api.smugmug.com" + image_uri 
+  
+  @image_data = @access_token.get(image_path, { 'Accept'=>'application/json' }).body
+  @image_sizes = @access_token.get(image_path + "!sizedetails", { 'Accept'=>'application/json' }).body
+  @image_metadata = @access_token.get(image_path + "!metadata", { 'Accept'=>'application/json' }).body
+
+  @thumbnail = JSON.parse(@image_data)['Response']['Image']['ThumbnailUrl']
+  @alt = JSON.parse(@image_data)['Response']['Image']['Caption']
+  @image_url = JSON.parse(@image_sizes)['Response']['ImageSizeDetails']['ImageSizeX2Large']['Url']
+
+  haml :post_image
 end
 
 # This is just to help see what comes back for elsewhere

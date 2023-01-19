@@ -6,13 +6,16 @@
     %h3
       %i.fa-brands.fa-markdown
     %textarea{:style => "float:left;height:6em;margin-bottom:3rem;"}
-      = "![#{alt}](#{img_url}/public)"
+      = "![#{@alt}](#{@image_url})"
 
     %h3{:style => "clear:left;"}
       %i.fa-solid.fa-code
     %textarea{:style => "float:left;height:6em;margin-bottom:3rem;"}
-      = "<img src='#{img_url}/public' alt='#{alt}' />"
+      = "<img src='#{@image_url}' alt='#{@alt}' />"
     %br/
         
   .column-right
-    %img{:src => "#{img_url}/public", :style => "margin-top:2em;"}
+    %img{:src => "#{@thumbnail}" , :style => "margin-top:2em;"}
+
+
+  
