@@ -6,6 +6,8 @@ end
 
 gem 'exif'
 gem 'haml'
+gem "pry"
+gem "pry-nav"
 gem 'puma'
 gem 'rest-client'
 gem 'sinatra'

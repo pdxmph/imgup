@@ -1,0 +1,13 @@
+-# We use this page to see our oauth token and secret, which allows us to 
+-# save these as env variables and persist over restarts
+
+%h1
+  Tokens
+
+
+%pre{:style => "color:white;"}
+  = @access_token.token
+
+
+%pre{:style => "color:white;"}
+  = @access_token.secret

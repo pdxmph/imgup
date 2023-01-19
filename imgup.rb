@@ -19,8 +19,6 @@ end
 
 set :haml, { escape_html: false }
 set :sessions, true
-# todo get rid of this as soon as we fix those auth 
-enable :inline_templates
 
 # get our variables out of .env
 smugmug_token = ENV['SMUGMUG_TOKEN']
@@ -29,10 +27,21 @@ smugmug_upload_url = ENV['SMUGMUG_UPLOAD_URL']
 smugmug_upload_album_id = ENV['SMUGMUG_UPLOAD_ALBUM_ID']
 smugmug_upload_album_endpoint = ENV['SMUGMUG_UPLOAD_ALBUM_ENDPOINT']
 base_upload_url = ENV['SMUGMUG_BASE_URL']
+smugmug_base_url = "https://api.smugmug.com"
+
+# If you know your access token info, put it in `.env` 
+# Once you do that, you can use these two variables below in the session[:oauth] instantiation
+# Once you sign in, you can grab these vatiables from `/tokens`
+sm_access_token = ENV['SMUGMUG_ACCESS_TOKEN']
+sm_access_token_secret = ENV['SMUGMUG_ACCESS_TOKEN_SECRET']
 
 # oauth session
 before do
   session[:oauth] ||= {}  
+  # comment out this line if you don't have your access token
+  session[:oauth][:access_token] = sm_access_token
+  # comment out this line if you don't have your access token
+  session[:oauth][:access_token_secret] = sm_access_token_secret
   @consumer ||=OAuth::Consumer.new smugmug_token,smugmug_secret, {
     :site => "https://api.smugmug.com",
     :request_token_path => '/services/oauth/1.0a/getRequestToken',
@@ -50,9 +59,7 @@ before do
   end
 end
 
-# our routes
-
-# We need to check for this stuff everywhere we need to be logged in
+# Offers a Smugmug auth if you don't have access tokens
 get "/" do
     haml :index
 end
@@ -79,33 +86,19 @@ get "/logout" do
   redirect '/'
 end
 
-
-get "/response", { provides: 'html' } do 
-  @resp = JSON.parse(params['resp'])
-  @img_uri = "https://api.smugmug.com#{@resp['Image']['ImageUri']}"
-
-  hydra = Typhoeus::Hydra.new
-  req = Typhoeus::Request.new(@img_uri, 
-    :method => "get",
-    :followlocation => "true",
-      :headers => {:Accept => "application/json",
-      }
-    )
-  # set up the auth header
-  oauth_params = { consumer: @consumer, token: @access_token }
-  oauth_helper = OAuth::Client::Helper.new(req, oauth_params.merge(request_uri: @img_uri))
-  req.options[:headers]["Authorization"] = oauth_helper.header # Signs the request
-  
-  # run the upload call 
-  hydra.queue(req)
-  hydra.run
-
-  @image=JSON.parse(req.response.response_body)
-
-  haml :response
+# use this to get your access token and secret once you've authentiated
+# store those in .env and you can avoid re-authing every time you restart
+get '/tokens' do 
+  @access = @access_token.token
+  @secret = @access_token.secret
+  haml :tokens
 end
 
 # the heavy lifter
+# this is a little cargo-culty -- rather than teeing up a big Typhoeus thing, 
+# you can use the access token's `get` method. 
+# TODO: Check out the headers syntax for that
+ 
 post '/upload_smugmug' do 
   tempfile = params[:file][:tempfile] 
   filename = params[:file][:filename]
@@ -138,22 +131,34 @@ post '/upload_smugmug' do
   hydra.queue(req)
   hydra.run
 
-  response=req.response.response_body
-  redirect "/response?resp=#{response}"
+  # This keeps the response URLs tidy and send JSON over
+  image = JSON.parse(req.response.response_body)['Image']
+  session[:image] = image
+
+  redirect "/response"
 end
 
+# This is just to help see what comes back for elsewhere
+get '/response', { provides: 'html' } do 
+  @image = session[:image]
+  image_uri = @image['ImageUri']
+  
+  image_path = "https://api.smugmug.com" + image_uri 
+  
+  @image_data = @access_token.get(image_path, { 'Accept'=>'application/json' }).body
+  @image_sizes = @access_token.get(image_path + "!sizedetails", { 'Accept'=>'application/json' }).body
+  @image_metadata = @access_token.get(image_path + "!metadata", { 'Accept'=>'application/json' }).body
 
-# optional -- just a user page to test stuff dynamically 
-# could pull in some Smugmug user info for the fun of it or not 
-# get "/user", { provides: 'html' } do 
-#   @resp = params['resp']
-#   haml :user
-# end
+  haml :response
+end
 
-# __END__
+# Eventually a list of recent images with a way to quickly get sharing links to your clipboard
+get '/recent', {provides: 'html'} do 
+  album_path = smugmug_base_url + '/api/v2/album/8m9hF8!images'
+  @album_images = @access_token.get(album_path, { 'Accept'=>'application/json' }).body
 
-# @@ start
-# <a href="/request">PWN OAuth</a>
+  # much more to come
 
-# @@ ready
-# OAuth PWND. <a href="/logout">Retreat!</a>
+  haml :recent
+end
+

@@ -1,0 +1,23 @@
+%h2 
+  Recent Images
+
+
+%pre
+  - images = JSON.parse(@album_images)['Response']['AlbumImage']
+  - images.each do |i|
+    = JSON.pretty_generate i
+    %br
+
+  -# = JSON.pretty_generate JSON.parse(@album_images)['Response']['AlbumImage']
+
+
+-#   We want 
+
+-# In the image
+-#   Uri
+-#   ThumbnailUrl  
+
+-# GETs
+-#     !ImageSizes
+-#     !ImageMetadata
+-#     !AlbumImageShareUris   Response.AlbumImageShareUris.LightboxUri
