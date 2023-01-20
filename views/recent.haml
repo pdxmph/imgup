@@ -1,27 +1,5 @@
-%h2 
-  Recent Images
-
-
-- images = JSON.parse(@album_images)['Response']['AlbumImage']
-- images.each do |i|
-
+- @recents.each do |r|
   %div{:style => "margin-bottom:2rem;clear:both;"}
-    %img{:src => i['ThumbnailUrl'], :style => "width:10%;float:left;margin-bottom:2rem;"}
+    %img{:src => r[:thumb], :style => "width:10%;float:left;margin-bottom:2rem;"}
     %textarea{:style => "float:left;width: 75%;margin-left:2rem;height: 5rem;"}
-      = "![#{i['Caption']}](http://someurl.com)"
-    
-    %br
-
-  -# = JSON.pretty_generate JSON.parse(@album_images)['Response']['AlbumImage']
-
-
--#   We want 
-
--# In the image
--#   Uri
--#   ThumbnailUrl  
-
--# GETs
--#     !ImageSizes
--#     !ImageMetadata
--#     !AlbumImageShareUris   Response.AlbumImageShareUris.LightboxUri
+      = "![#{r[:caption]}](#{r[:image_url]})"

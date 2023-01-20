@@ -9,6 +9,7 @@ require 'oauth'
 require 'oauth/consumer'
 require "oauth/request_proxy/typhoeus_request"
 require 'pry'
+require 'pry-byebug'
 
 include FileUtils::Verbose
 
@@ -39,9 +40,9 @@ sm_access_token_secret = ENV['SMUGMUG_ACCESS_TOKEN_SECRET']
 before do
   session[:oauth] ||= {}  
   # comment out this line if you don't have your access token
-  # session[:oauth][:access_token] = sm_access_token
+  session[:oauth][:access_token] = sm_access_token
   # comment out this line if you don't have your access token
-  # session[:oauth][:access_token_secret] = sm_access_token_secret
+  session[:oauth][:access_token_secret] = sm_access_token_secret
   @consumer ||=OAuth::Consumer.new smugmug_token,smugmug_secret, {
     :site => "https://api.smugmug.com",
     :request_token_path => '/services/oauth/1.0a/getRequestToken',
@@ -154,12 +155,32 @@ get '/post_image', { provides: 'html' } do
 
   @thumbnail = JSON.parse(@image_data)['Response']['Image']['ThumbnailUrl']
   @alt = JSON.parse(@image_data)['Response']['Image']['Caption']
-  @image_url = JSON.parse(@image_sizes)['Response']['ImageSizeDetails']['ImageSizeX2Large']['Url']
+  @image_url = JSON.parse(@image_sizes)['Response']['ImageSizeDetails']['ImageSizeXLarge']['Url']
+   
 
   haml :post_image
 end
 
-# This is just to help see what comes back for elsewhere
+get '/recent', {provides: 'html'} do 
+  album_path = smugmug_base_url + '/api/v2/album/8m9hF8!images'
+  image_list = @access_token.get(album_path, { 'Accept' => 'application/json' }).body
+  @album_images = JSON.parse(image_list)['Response']['AlbumImage']
+  @recents = []
+  
+  @album_images.each do |i|
+    image_key = i['ImageKey']
+    image_uri = i['Uris']['Image']['Uri']
+    thumb = i['ThumbnailUrl']
+    caption = i['Caption']
+    image_path = smugmug_base_url + image_uri
+    image_sizes = @access_token.get(image_path + "!sizedetails", { 'Accept'=>'application/json' }).body
+    image_url = JSON.parse(image_sizes)['Response']['ImageSizeDetails']['ImageSizeXLarge']['Url']
+    @recents << {:thumb => thumb, :caption => caption, :image_url => image_url}
+  end
+
+  haml :recent
+end
+
 get '/response', { provides: 'html' } do 
   @image = session[:image]
   image_uri = @image['ImageUri']
@@ -172,14 +193,3 @@ get '/response', { provides: 'html' } do
 
   haml :response
 end
-
-# Eventually a list of recent images with a way to quickly get sharing links to your clipboard
-get '/recent', {provides: 'html'} do 
-  album_path = smugmug_base_url + '/api/v2/album/8m9hF8!images'
-  @album_images = @access_token.get(album_path, { 'Accept'=>'application/json' }).body
-
-  # much more to come
-
-  haml :recent
-end
-
