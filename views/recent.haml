@@ -2,10 +2,14 @@
   Recent Images
 
 
-%pre
-  - images = JSON.parse(@album_images)['Response']['AlbumImage']
-  - images.each do |i|
-    = JSON.pretty_generate i
+- images = JSON.parse(@album_images)['Response']['AlbumImage']
+- images.each do |i|
+
+  %div{:style => "margin-bottom:2rem;clear:both;"}
+    %img{:src => i['ThumbnailUrl'], :style => "width:10%;float:left;margin-bottom:2rem;"}
+    %textarea{:style => "float:left;width: 75%;margin-left:2rem;height: 5rem;"}
+      = "![#{i['Caption']}](http://someurl.com)"
+    
     %br
 
   -# = JSON.pretty_generate JSON.parse(@album_images)['Response']['AlbumImage']
