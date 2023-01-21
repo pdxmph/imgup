@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 require 'sinatra'
-require 'dotenv/load'
+require 'dotenv'
 require 'puma'
 require 'haml'
 require 'json'
@@ -13,10 +13,10 @@ require 'pry-byebug'
 
 include FileUtils::Verbose
 
-# won't run in production unless you get rid of this or set environment variables for secrets, etc. 
 unless ENV['APP_ENV'] == 'production'
-  require 'dotenv/load'
+  Dotenv.load('.env', '.env_oauth')
 end
+
 
 run_dir = File.dirname(__FILE__)
 run_dir = Dir.pwd if (run_dir == '.')
@@ -35,17 +35,17 @@ smugmug_base_url = "https://api.smugmug.com"
 
 # If you know your access token info, put it in `.env` 
 # Once you do that, you can use these two variables below in the session[:oauth] instantiation
-# Once you sign in, you can grab these vatiables from `/tokens`
+# Once you sign in, you can grab these variables from `/tokens`
 sm_access_token = ENV['SMUGMUG_ACCESS_TOKEN']
 sm_access_token_secret = ENV['SMUGMUG_ACCESS_TOKEN_SECRET']
 
 # oauth session
 before do
   session[:oauth] ||= {}  
-  # comment out this line if you don't have your access token
-  # session[:oauth][:access_token] = sm_access_token
-  # comment out this line if you don't have your access token
-  # session[:oauth][:access_token_secret] = sm_access_token_secret
+  if sm_access_token != nil && sm_access_token_secret != nil
+   session[:oauth][:access_token] = sm_access_token
+   session[:oauth][:access_token_secret] = sm_access_token_secret
+ end
   @consumer ||=OAuth::Consumer.new smugmug_token,smugmug_secret, {
     :site => "https://api.smugmug.com",
     :request_token_path => '/services/oauth/1.0a/getRequestToken',
