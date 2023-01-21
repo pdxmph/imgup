@@ -43,9 +43,9 @@ sm_access_token_secret = ENV['SMUGMUG_ACCESS_TOKEN_SECRET']
 before do
   session[:oauth] ||= {}  
   # comment out this line if you don't have your access token
-  session[:oauth][:access_token] = sm_access_token
+  # session[:oauth][:access_token] = sm_access_token
   # comment out this line if you don't have your access token
-  session[:oauth][:access_token_secret] = sm_access_token_secret
+  # session[:oauth][:access_token_secret] = sm_access_token_secret
   @consumer ||=OAuth::Consumer.new smugmug_token,smugmug_secret, {
     :site => "https://api.smugmug.com",
     :request_token_path => '/services/oauth/1.0a/getRequestToken',

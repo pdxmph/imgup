@@ -1,13 +1,22 @@
 -# We use this page to see our oauth token and secret, which allows us to 
 -# save these as env variables and persist over restarts
 
-%h1
-  Tokens
+%h3
+  %i.fa-solid.fa-warning
+  Your oAuth Tokens
 
+%p
+  If you wish, you can save your oAuth access token and secret. The information is stored in a file named <tt>.env_oauth</tt>. Never check that file into version control and don't use it on a computer you don't trust. 
 
+%h3{:style => "margin-top:3rem;"}
+  %i.fa-solid.fa-passport
+  Access Token
 %pre{:style => "color:white;"}
   = @access_token.token
 
-
+%h3{:style => "margin-top:2rem;"}
+  %i.fa-solid.fa-key
+  Access Secret
 %pre{:style => "color:white;"}
   = @access_token.secret
+
