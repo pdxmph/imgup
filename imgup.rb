@@ -18,6 +18,9 @@ unless ENV['APP_ENV'] == 'production'
   require 'dotenv/load'
 end
 
+run_dir = File.dirname(__FILE__)
+run_dir = Dir.pwd if (run_dir == '.')
+
 set :haml, { escape_html: false }
 set :sessions, true
 
@@ -108,14 +111,14 @@ post '/upload_smugmug' do
   caption = params[:caption]
   title = params[:title]
 
-  cp(tempfile.path, "#{filename}")
+  cp(tempfile.path, "tmp/#{filename}")
   
   # Set up the call to the API, but don't fire it off just yet
   hydra = Typhoeus::Hydra.new
   req = Typhoeus::Request.new(smugmug_upload_url, 
     :method => "post",
     :body => 
-      {file: File.open("#{filename}","r")},
+      {file: File.open("tmp/#{filename}","r")},
     :headers => {
       "X-Smug-AlbumUri" => smugmug_upload_album_endpoint,
       "X-Smug-ResponseType" => "JSON",
@@ -137,6 +140,8 @@ post '/upload_smugmug' do
   # This keeps the response URLs tidy and send JSON over
   image = JSON.parse(req.response.response_body)['Image']
   session[:image] = image
+
+  File.delete(run_dir + "/tmp/#{filename}")
 
 
   redirect "/post_image"
