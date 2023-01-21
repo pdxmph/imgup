@@ -17,35 +17,8 @@
 4. `ruby imgup.rb`
 5. Visit <https://localhost:4567/>
 6. Step through authentication with Smugmug
-7. Start uploading. Unless you do the optional steps below, you'll have to sign in with Smugmug every time you restart the app. 
-
-## Optional: Save your oAuth tokens for reuse
-
-1. Visit <https://localhost:4567/tokens> to get your oAuth access token information. 
-2. Edit `.env`
-  - Your access token goes on this line, ex: `SMUGMUG_ACCESS_TOKEN=xyztuvabcDFGH98765`
-  - Your access token secret goes on this line, ex: `SMUGMUG_ACCESS_TOKEN_SECRET=12345ABCDElkjhqwer890`
-3. Edit `imgup.rb`. 
-
-Look for these lines:
-
-```ruby
-# comment out this line if you don't have your access token
-#  session[:oauth][:access_token] = sm_access_token
-# comment out this line if you don't have your access token
-# session[:oauth][:access_token_secret] = sm_access_token_secret
-```
-
-... and uncomment the two `session[:oauth]` lines: 
-
-```ruby
-# comment out this line if you don't have your access token
-session[:oauth][:access_token] = sm_access_token
-# comment out this line if you don't have your access token
-session[:oauth][:access_token_secret] = sm_access_token_secret
-```
-You can restart the app (`ruby imgup.rb`) and your oAuth authentication should persist between restarts. 
-
+7. If you want to save your oAuth tokens, copy/paste the text on the tokens page into a new file named `.env_oauth`
+7. Start uploading. 
 
 # Idea
 
