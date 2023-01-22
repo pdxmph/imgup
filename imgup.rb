@@ -10,12 +10,8 @@ require "oauth/request_proxy/typhoeus_request"
 
 include FileUtils::Verbose
 
-unless ENV['APP_ENV'] == 'production'
-  require 'pry'
-  require 'pry-byebug'
-  require 'dotenv'
-  Dotenv.load('.env', '.env_oauth')
-end
+set :environment, :production
+
 
 run_dir = File.dirname(__FILE__)
 run_dir = Dir.pwd if (run_dir == '.')
@@ -183,17 +179,4 @@ get '/recent', {provides: 'html'} do
   end
 
   haml :recent
-end
-
-get '/response', { provides: 'html' } do 
-  @image = session[:image]
-  image_uri = @image['ImageUri']
-  
-  image_path = "https://api.smugmug.com" + image_uri 
-  
-  @image_data = @access_token.get(image_path, { 'Accept'=>'application/json' }).body
-  @image_sizes = @access_token.get(image_path + "!sizedetails", { 'Accept'=>'application/json' }).body
-  @image_metadata = @access_token.get(image_path + "!metadata", { 'Accept'=>'application/json' }).body
-
-  haml :response
 end
