@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
 require 'sinatra'
-require 'dotenv'
 require 'puma'
 require 'haml'
 require 'json'
@@ -8,15 +7,15 @@ require 'typhoeus'
 require 'oauth'
 require 'oauth/consumer'
 require "oauth/request_proxy/typhoeus_request"
-require 'pry'
-require 'pry-byebug'
 
 include FileUtils::Verbose
 
 unless ENV['APP_ENV'] == 'production'
+  require 'pry'
+  require 'pry-byebug'
+  require 'dotenv'
   Dotenv.load('.env', '.env_oauth')
 end
-
 
 run_dir = File.dirname(__FILE__)
 run_dir = Dir.pwd if (run_dir == '.')
@@ -24,14 +23,14 @@ run_dir = Dir.pwd if (run_dir == '.')
 set :haml, { escape_html: false }
 set :sessions, true
 
+smugmug_upload_url = "https://upload.smugmug.com/"
+smugmug_base_url = "https://api.smugmug.com"
+
 # get our variables out of .env
 smugmug_token = ENV['SMUGMUG_TOKEN']
 smugmug_secret = ENV['SMUGMUG_SECRET']
-smugmug_upload_url = ENV['SMUGMUG_UPLOAD_URL']
 smugmug_upload_album_id = ENV['SMUGMUG_UPLOAD_ALBUM_ID']
-smugmug_upload_album_endpoint = ENV['SMUGMUG_UPLOAD_ALBUM_ENDPOINT']
-base_upload_url = ENV['SMUGMUG_BASE_URL']
-smugmug_base_url = "https://api.smugmug.com"
+smugmug_upload_album_endpoint = "/api/v2/album/#{ENV['SMUGMUG_UPLOAD_ALBUM_ID']}"
 
 # If you know your access token info, put it in `.env` 
 # Once you do that, you can use these two variables below in the session[:oauth] instantiation
