@@ -28,8 +28,6 @@ GEM
     pry-byebug (3.10.1)
       byebug (~> 11.0)
       pry (>= 0.13, < 0.15)
-    pry-nav (1.0.0)
-      pry (>= 0.9.10, < 0.15)
     puma (6.0.2)
       nio4r (~> 2.0)
     rack (2.2.5)
@@ -61,7 +59,6 @@ DEPENDENCIES
   oauth
   pry
   pry-byebug
-  pry-nav
   puma
   rack
   sinatra

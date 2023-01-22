@@ -11,9 +11,6 @@ end
 
 gem 'haml'
 gem 'oauth'
-gem "pry"
-gem 'pry-byebug'
-gem "pry-nav"
 gem 'puma'
 gem 'rack'
 gem 'sinatra'
