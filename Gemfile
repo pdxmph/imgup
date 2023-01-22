@@ -12,7 +12,7 @@ gem "pry"
 gem 'pry-byebug'
 gem "pry-nav"
 gem 'puma'
-gem 'rest-client'
+gem 'rack'
 gem 'sinatra'
-gem 'sinatra-contrib'
 gem 'typhoeus'
+
