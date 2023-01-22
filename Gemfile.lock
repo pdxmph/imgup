@@ -8,7 +8,6 @@ GEM
     dotenv (2.8.1)
     ethon (0.16.0)
       ffi (>= 1.15.0)
-    exif (2.2.4)
     ffi (1.15.5)
     haml (6.1.1)
       temple (>= 0.8.2)
@@ -82,7 +81,6 @@ PLATFORMS
 
 DEPENDENCIES
   dotenv
-  exif
   haml
   oauth
   pry
