@@ -16,7 +16,6 @@ end
 
 set :environment, :production
 
-
 run_dir = File.dirname(__FILE__)
 run_dir = Dir.pwd if (run_dir == '.')
 
@@ -166,7 +165,13 @@ get '/post_image', { provides: 'html' } do
 end
 
 get '/recent', {provides: 'html'} do 
-  album_path = smugmug_base_url + '/api/v2/album/8m9hF8!images'
+  if(params.has_key?(:count))
+    count = params[:count]
+  else
+    count = 10
+  end
+  
+  album_path = smugmug_base_url + "/api/v2/album/8m9hF8!images?count=#{count}"
   image_list = @access_token.get(album_path, { 'Accept' => 'application/json' }).body
   @album_images = JSON.parse(image_list)['Response']['AlbumImage']
   @recents = []
