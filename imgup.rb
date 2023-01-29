@@ -179,12 +179,14 @@ get '/recent', {provides: 'html'} do
   @album_images.each do |i|
     image_key = i['ImageKey']
     image_uri = i['Uris']['Image']['Uri']
+    title = i['Title']
     thumb = i['ThumbnailUrl']
     caption = i['Caption']
+    link = i['WebUri']
     image_path = smugmug_base_url + image_uri
     image_sizes = @access_token.get(image_path + "!sizedetails", { 'Accept'=>'application/json' }).body
     image_url = JSON.parse(image_sizes)['Response']['ImageSizeDetails']['ImageSizeXLarge']['Url']
-    @recents << {:thumb => thumb, :caption => caption, :image_url => image_url}
+    @recents << {:thumb => thumb, :caption => caption, :image_url => image_url, :title => title, :image_link => link}
   end
 
   haml :recent
