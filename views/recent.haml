@@ -1,12 +1,6 @@
 - @recents.each do |r|
   %div{:style => "margin-bottom:2rem;clear:both;"}
-    %img{:src => r[:thumb], :style => "width:10%;float:left;margin-bottom:2rem;margin-top:1rem;"}
+    %img{:src => r[:thumb], :style => "width:10%;float:left;margin-bottom:2rem;"}
     %textarea{:style => "float:left;width: 85%;margin-left:2rem;height: 5rem;"}
       = "![#{r[:caption]}](#{r[:image_url]})"
-    %textarea{:style => "float:left;width: 85%;margin-left:2rem;margin-top:1rem;margin-bottom:2rem;height: 10rem;"}
-      = "  potw_img_url: #{r[:image_url]}\n"
-      = "  potw_caption: #{r[:title]}\n" 
-      = "  potw_alt:  #{r[:caption]}\n"
-      = "  potw_gallery_link:  #{r[:image_link]}\n"
-       
-
+    
