@@ -6,7 +6,7 @@ require 'json'
 require 'date'
 require 'slugify'
 
-endpoint = 'http://localhost:4567/potw-json'
+endpoint = 'http://localhost:4567/potw?json=1'
 site_posts_dir = "~/src/simple/content/posts/"
 
 date = Date.today.strftime("%Y-%m-%d") 
@@ -14,7 +14,7 @@ long_date = Time.now.strftime("%Y-%m-%dT%H:%M:%S%z")
 title = date + '-potw'
 
 slug = title.slugify
-filename = date + '-' + slug + '.md'
+filename =  slug + '.md'
 file_path = File.expand_path(site_posts_dir + filename)
 
 if File.exists?(file_path)

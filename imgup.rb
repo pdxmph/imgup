@@ -191,39 +191,18 @@ get '/recent', {provides: 'html'} do
 end
 
 get '/potw', {provides: 'html'} do 
+  
   if(params.has_key?(:count))
     count = params[:count]
   else
     count = 5
   end
   
-  album_path = smugmug_base_url + "/api/v2/album/hpBgzt!images?count=#{count}"
-  image_list = @access_token.get(album_path, { 'Accept' => 'application/json' }).body
-  @album_images = JSON.parse(image_list)['Response']['AlbumImage']
-  @recents = []
-  
-  @album_images.each do |i|
-    image_key = i['ImageKey']
-    image_uri = i['Uris']['Image']['Uri']
-    title = i['Title']
-    thumb = i['ThumbnailUrl']
-    caption = i['Caption']
-    link = i['WebUri']
-    image_path = smugmug_base_url + image_uri
-    image_sizes = @access_token.get(image_path + "!sizedetails", { 'Accept'=>'application/json' }).body
-    image_url = JSON.parse(image_sizes)['Response']['ImageSizeDetails']['ImageSizeXLarge']['Url']
-    @recents << {:thumb => thumb, :caption => caption, :image_url => image_url, :title => title, :image_link => link}
-  end
-  haml :potw
-end
-
-get '/potw-json', {provides: 'html'} do 
-  if(params.has_key?(:count))
-    count = params[:count]
-  else
+  if(params.has_key?(:json)) 
+    json = true
     count = 1
   end
-  
+
   album_path = smugmug_base_url + "/api/v2/album/hpBgzt!images?count=#{count}"
   image_list = @access_token.get(album_path, { 'Accept' => 'application/json' }).body
   @album_images = JSON.parse(image_list)['Response']['AlbumImage']
@@ -241,10 +220,14 @@ get '/potw-json', {provides: 'html'} do
     image_url = JSON.parse(image_sizes)['Response']['ImageSizeDetails']['ImageSizeXLarge']['Url']
     @recents << {:thumb => thumb, :caption => caption, :image_url => image_url, :title => title, :image_link => link}
   end
-  
+
+unless json == true
+  haml :potw
+else 
   content_type  :json
   @recents.first.to_json
-  
+end
+
 end
 
 
