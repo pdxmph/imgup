@@ -211,14 +211,18 @@ get '/potw', {provides: 'html'} do
   @album_images.each do |i|
     image_key = i['ImageKey']
     image_uri = i['Uris']['Image']['Uri']
-    title = i['Title']
+    title = "Picture of the Week: " + i['Title']
     thumb = i['ThumbnailUrl']
-    caption = i['Caption']
-    link = i['WebUri']
+    potw_alt = i['Caption']
+    potw_gallery_link = i['WebUri']
     image_path = smugmug_base_url + image_uri
     image_sizes = @access_token.get(image_path + "!sizedetails", { 'Accept'=>'application/json' }).body
-    image_url = JSON.parse(image_sizes)['Response']['ImageSizeDetails']['ImageSizeXLarge']['Url']
-    @recents << {:thumb => thumb, :caption => caption, :image_url => image_url, :title => title, :image_link => link}
+    potw_img_url = JSON.parse(image_sizes)['Response']['ImageSizeDetails']['ImageSizeXLarge']['Url']
+    @recents << {:thumb => thumb, 
+      :potw_alt => potw_alt, 
+      :potw_img_url => potw_img_url, 
+      :title => title, 
+      :potw_gallery_link => potw_gallery_link}
   end
 
 unless json == true
