@@ -8,7 +8,6 @@ require 'oauth'
 require 'oauth/consumer'
 require "oauth/request_proxy/typhoeus_request"
 include FileUtils::Verbose
-require 'dotenv/load'
 
 set :environment, :production
 set :bind, '0.0.0.0'
