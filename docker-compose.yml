@@ -1,0 +1,7 @@
+version: '3'
+services:
+  imgup:
+    build: .
+    ports:
+      - "4568:4568"
+    restart: unless-stopped
