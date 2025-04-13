@@ -4,3 +4,4 @@ Gemfile.lock
 .env
 .env_oauth
 .pid
+env
