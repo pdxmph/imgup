@@ -3,5 +3,11 @@ services:
   imgup:
     build: .
     ports:
-      - "4569:4567"
+      - "4568:4567"
+    environment:
+      SMUGMUG_TOKEN: ${SMUGMUG_TOKEN}
+      SMUGMUG_SECRET: ${SMUGMUG_SECRET}
+      SMUGMUG_UPLOAD_ALBUM_ID: ${SMUGMUG_UPLOAD_ALBUM_ID}
+      SMUGMUG_ACCESS_TOKEN: ${SMUGMUG_ACCESS_TOKEN}
+      SMUGMUG_ACCESS_TOKEN_SECRET: ${SMUGMUG_ACCESS_TOKEN_SECRET}
     restart: unless-stopped
