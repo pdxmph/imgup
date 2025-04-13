@@ -3,5 +3,5 @@ services:
   imgup:
     build: .
     ports:
-      - "4568:4567"
+      - "4569:4567"
     restart: unless-stopped
