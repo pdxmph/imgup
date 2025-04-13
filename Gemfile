@@ -1,7 +1,6 @@
 source 'https://rubygems.org'
 
-ruby "3.2.8"
-
+ruby '~> 3.2'
 group  :development do
   gem 'dotenv'
   gem 'pry'
