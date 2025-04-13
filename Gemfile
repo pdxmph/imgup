@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-ruby '~> 3.2'
+ruby '~> 3.2.3'
 group  :development do
   gem 'dotenv'
   gem 'pry'
@@ -14,4 +14,4 @@ gem 'puma'
 gem 'rack'
 gem 'sinatra'
 gem 'typhoeus'
-
+gem 'rackup'
