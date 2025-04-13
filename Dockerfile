@@ -1,11 +1,20 @@
-# Dockerfile
+FROM ruby:3.2-slim
 
-FROM ruby:3.1.3
+# Install dependencies
+RUN apt-get update -qq && apt-get install -y build-essential libpq-dev nodejs
 
-WORKDIR /imgup_smugmug
-COPY . /imgup_smugmug
+# Set working directory
+WORKDIR /app
+
+# Copy Gemfiles and install gems
+COPY Gemfile Gemfile.lock ./
 RUN bundle install
 
-EXPOSE 4567
+# Copy rest of app
+COPY . .
 
-CMD ["bundle", "exec", "rackup", "--host", "0.0.0.0", "-p", "4567"]
+# Expose Sinatra default port
+EXPOSE 4568
+
+# Run the app
+CMD ["ruby", "imgup.rb"]

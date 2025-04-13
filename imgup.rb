@@ -8,6 +8,7 @@ require 'oauth'
 require 'oauth/consumer'
 require "oauth/request_proxy/typhoeus_request"
 include FileUtils::Verbose
+require 'dotenv/load'
 
 use Rack::Auth::Basic, "Restricted Area" do |username, password|
   username == ENV['USER'] and password == ENV['PASS']
