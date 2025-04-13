@@ -10,14 +10,12 @@ require "oauth/request_proxy/typhoeus_request"
 include FileUtils::Verbose
 require 'dotenv/load'
 
-use Rack::Auth::Basic, "Restricted Area" do |username, password|
-  username == ENV['USER'] and password == ENV['PASS']
-end
-
 set :environment, :production
-
+set :bind, '0.0.0.0'
 run_dir = File.dirname(__FILE__)
 run_dir = Dir.pwd if (run_dir == '.')
+
+Dir.mkdir("tmp") unless Dir.exist?("tmp")
 
 set :haml, { escape_html: false }
 set :sessions, true

@@ -1,20 +1,20 @@
 FROM ruby:3.2-slim
 
-# Install dependencies
-RUN apt-get update -qq && apt-get install -y build-essential libpq-dev nodejs
+RUN apt-get update -qq && \
+    apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    libcurl4-openssl-dev \
+    nodejs \
+    && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
 WORKDIR /app
 
-# Copy Gemfiles and install gems
 COPY Gemfile Gemfile.lock ./
 RUN bundle install
 
-# Copy rest of app
 COPY . .
 
-# Expose Sinatra default port
-EXPOSE 4568
+EXPOSE 4567
 
-# Run the app
 CMD ["ruby", "imgup.rb"]
