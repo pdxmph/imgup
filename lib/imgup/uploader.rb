@@ -5,9 +5,9 @@ require 'net/http'
 require 'uri'
 require 'json'
 require 'oauth'
-require 'oauth/client/net_http'   # Net::HTTP signing support
+require 'oauth/client/net_http'   # for OAuth signing
 require 'dotenv/load'
-require 'net/http/post/multipart'  # from multipart-post gem
+require 'net/http/post/multipart'
 
 module ImgUp
   class Uploader
@@ -16,19 +16,20 @@ module ImgUp
       @title    = title   || File.basename(filepath, '.*')
       @caption  = caption || ''
       load_env
+      setup_oauth_client
     end
 
-    # Copy → upload → cleanup → result
+    # Complete flow: copy → upload → cleanup → fetch sizes → result
     def call
-      tmp_path = copy_to_tmp
-      image    = upload_file(tmp_path)
-      cleanup_tmp(tmp_path)
-      build_result(image)
+      tmp      = copy_to_tmp
+      image    = upload_file(tmp)
+      cleanup_tmp(tmp)
+      full_url = fetch_full_url(image)
+      build_result(full_url)
     end
 
     private
 
-    # Load ENV vars; dotenv auto-loads your .env
     def load_env
       @consumer_key        = ENV.fetch('SMUGMUG_TOKEN')
       @consumer_secret     = ENV.fetch('SMUGMUG_SECRET')
@@ -36,9 +37,22 @@ module ImgUp
       @access_token_secret = ENV.fetch('SMUGMUG_ACCESS_TOKEN_SECRET')
       @album_id            = ENV.fetch('SMUGMUG_UPLOAD_ALBUM_ID')
       @upload_url          = ENV.fetch('SMUGMUG_UPLOAD_URL', 'https://upload.smugmug.com/')
+      @api_base            = ENV.fetch('SMUGMUG_API_URL',  'https://api.smugmug.com')
     end
 
-    # Make a tmp copy so originals stay untouched
+    def setup_oauth_client
+      @consumer = OAuth::Consumer.new(
+        @consumer_key,
+        @consumer_secret,
+        site: @api_base
+      )
+      @access = OAuth::AccessToken.new(
+        @consumer,
+        @access_token,
+        @access_token_secret
+      )
+    end
+
     def copy_to_tmp
       FileUtils.mkdir_p('tmp')
       tmp = File.join('tmp', File.basename(@filepath))
@@ -46,11 +60,9 @@ module ImgUp
       tmp
     end
 
-    # Perform the multipart POST with OAuth1 signing
     def upload_file(tmp_path)
       uri = URI.parse(@upload_url)
 
-      # Build the multipart request
       file_io = UploadIO.new(
         File.open(tmp_path),
         'application/octet-stream',
@@ -61,7 +73,7 @@ module ImgUp
         'file' => file_io
       )
 
-      # Add SmugMug headers
+      # SmugMug-specific headers
       {
         'X-Smug-AlbumUri'     => "/api/v2/album/#{@album_id}",
         'X-Smug-ResponseType' => 'JSON',
@@ -71,49 +83,77 @@ module ImgUp
         'X-Smug-Caption'      => @caption
       }.each { |k, v| req[k] = v }
 
-      # Sign with OAuth1: set site to the upload host so scheme & host are known
-      consumer = OAuth::Consumer.new(
+      upload_consumer = OAuth::Consumer.new(
         @consumer_key,
         @consumer_secret,
         site: "#{uri.scheme}://#{uri.host}"
       )
-      access = OAuth::AccessToken.new(
-        consumer,
+      upload_access = OAuth::AccessToken.new(
+        upload_consumer,
         @access_token,
         @access_token_secret
       )
-      access.sign! req
+      upload_access.sign! req
 
-      # Fire the request
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = (uri.scheme == 'https')
       resp = http.request(req)
-
-      # On error, raise with a clear message
       unless resp.is_a?(Net::HTTPSuccess)
         raise "Upload failed: HTTP #{resp.code} (#{resp.message})\n" \
               "Response body: #{resp.body}"
       end
 
-      # The JSON comes back as:
-      # { "stat":"ok", "method":"smugmug.images.upload",
-      #   "Image": { ..., "URL":"http://example.smugmug.com/..." }
-      # }
       JSON.parse(resp.body)['Image']
     end
 
-    # Clean up tmp file
+    def fetch_full_url(image)
+      image_uri = image['ImageUri'] || image['Uri']
+      raise "No ImageUri found in upload response: #{image.inspect}" unless image_uri
+
+      uri = URI.join(@api_base, "#{image_uri}!sizes")
+      req = Net::HTTP::Get.new(uri.request_uri)
+      req['Accept'] = 'application/json'
+      @access.sign! req
+
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = (uri.scheme == 'https')
+      resp = http.request(req)
+      unless resp.is_a?(Net::HTTPSuccess)
+        raise "Size-fetch failed: HTTP #{resp.code} (#{resp.message})"
+      end
+
+      body = JSON.parse(resp.body)
+
+      # New v2 array format
+      sizes = body.dig('Response', 'ImageSizes', 'Size')
+      if sizes.is_a?(Array) && sizes.any?
+        best = sizes.max_by { |s| s['Width'].to_i }
+        return best['Url']
+      end
+
+      # Fallback: old hash mapping format under 'Response'->'ImageSizes'
+      sizes_hash = body.dig('Response', 'ImageSizes')
+      if sizes_hash.is_a?(Hash)
+        return sizes_hash['XLargeImageUrl']    if sizes_hash['XLargeImageUrl']
+        return sizes_hash['LargestImageUrl']   if sizes_hash['LargestImageUrl']
+        return sizes_hash['OriginalImageUrl']  if sizes_hash['OriginalImageUrl']
+        candidates = sizes_hash.select { |k,_| k.end_with?('ImageUrl') }
+        best_k, best_v = candidates.sort_by { |k,_| k.length }.last
+        return best_v if best_v
+      end
+
+      raise "No image size URL found in size response: #{body.inspect}"
+    end
+
     def cleanup_tmp(path)
       FileUtils.rm_f(path)
     end
 
-    # Build the return hash, using the 'URL' field
-    def build_result(image)
-      image_url = image['URL']
+    def build_result(full_url)
       {
-        url:      image_url,
-        markdown: "![#{@title}](#{image_url})",
-        html:     "<img src='#{image_url}' alt='#{@title}' />"
+        url:      full_url,
+        markdown: "![#{@title}](#{full_url})",
+        html:     "<img src='#{full_url}' alt='#{@title}' />"
       }
     end
   end

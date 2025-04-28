@@ -1,13 +1,14 @@
 # imgup: Smugmug uploads from a web GUI or the command line
 
-You can use this to either run a little web interface to upload images to SmugMug and get back markup you can paste into a blog, or do the same from the command line:
-
-`$ imgup --caption="A caption for my photo that will provide alt text" --title="The title it'll have in smugmug" some_picture.jpg`
+You can use this to either run a little web interface to upload images to SmugMug and get back markup you can paste into a blog, or do the same from the command line
 
 
+# Up and running (CLI Interface)
+
+See [README-cli.md](README-cli.md). 
 
 
-# Up and running
+# Up and running (Web Interface)
 
 ## Setup
 
