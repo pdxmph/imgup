@@ -8,8 +8,19 @@ require 'oauth'
 require 'oauth/consumer'
 require "oauth/request_proxy/typhoeus_request"
 include FileUtils::Verbose
+require_relative 'lib/imgup/uploader'
 
-set :environment, :production
+require 'dotenv/load'
+p ENV.slice(
+  'SMUGMUG_TOKEN',
+  'SMUGMUG_SECRET',
+  'SMUGMUG_ACCESS_TOKEN',
+  'SMUGMUG_ACCESS_TOKEN_SECRET',
+  'SMUGMUG_UPLOAD_ALBUM_ID'
+)
+
+
+set :environment, :development
 set :bind, '0.0.0.0'
 run_dir = File.dirname(__FILE__)
 run_dir = Dir.pwd if (run_dir == '.')
@@ -100,47 +111,16 @@ end
 # Yup. Looks like this:
 # @response = @token.post('/people', @person.to_xml, { 'Accept'=>'application/xml', 'Content-Type' => 'application/xml' })
  
-post '/upload_smugmug' do 
-  tempfile = params[:file][:tempfile] 
-  filename = params[:file][:filename]
+post '/upload_smugmug' do
+  file    = params[:file][:tempfile].path
+  title   = params[:title]
   caption = params[:caption]
-  title = params[:title]
+  result  = ImgUp::Uploader.new(file, title: title, caption: caption).call
 
-  cp(tempfile.path, "tmp/#{filename}")
-  
-  # Set up the call to the API, but don't fire it off just yet
-  hydra = Typhoeus::Hydra.new
-  req = Typhoeus::Request.new(smugmug_upload_url, 
-    :method => "post",
-    :body => 
-      {file: File.open("tmp/#{filename}","r")},
-    :headers => {
-      "X-Smug-AlbumUri" => smugmug_upload_album_endpoint,
-      "X-Smug-ResponseType" => "JSON",
-      "X-Smug-Version" => "v2",
-      "X-Smug-Filename" => filename,
-      "X-Smug-Title" => title,
-      "X-Smug-Caption" => caption
-    }
-    )
-  # set up the auth header
-  oauth_params = { consumer: @consumer, token: @access_token }
-  oauth_helper = OAuth::Client::Helper.new(req, oauth_params.merge(request_uri: smugmug_upload_url))
-  req.options[:headers]["Authorization"] = oauth_helper.header # Signs the request
-  
-  # run the upload call 
-  hydra.queue(req)
-  hydra.run
-
-  # This keeps the response URLs tidy and send JSON over
-  image = JSON.parse(req.response.response_body)['Image']
-  session[:image] = image
-
-  File.delete(run_dir + "/tmp/#{filename}")
-
-
-  redirect "/post_image"
+  session[:image] = result
+  redirect '/post_image'
 end
+
 
 # This is just to help see what comes back for elsewhere
 get '/post_image', { provides: 'html' } do 

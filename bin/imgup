@@ -1,0 +1,56 @@
+#!/usr/bin/env ruby
+require 'dotenv/load'
+require 'optparse'
+require_relative '../lib/imgup/uploader'
+
+options = {}
+
+parser = OptionParser.new do |opts|
+  opts.banner = "Usage: imgup [options] <path/to/image>"
+
+  opts.on("-tTITLE", "--title=TITLE", "Image title (default: filename)") do |t|
+    options[:title] = t
+  end
+
+  opts.on("-cCAPTION", "--caption=CAPTION", "Image caption (optional)") do |c|
+    options[:caption] = c
+  end
+
+  opts.on("-h", "--help", "Show this help message") do
+    puts opts
+    exit
+  end
+end
+
+# parse! will remove any flags from ARGV, leaving only the image path
+begin
+  parser.parse!
+rescue OptionParser::InvalidOption => e
+  $stderr.puts e.message
+  $stderr.puts parser
+  exit 1
+end
+
+if ARGV.length != 1
+  $stderr.puts parser
+  exit 1
+end
+
+file = ARGV.first
+unless File.file?(file)
+  $stderr.puts "File not found: #{file}"
+  exit 1
+end
+
+begin
+  result = ImgUp::Uploader.new(
+    file,
+    title:   options[:title],
+    caption: options[:caption]
+  ).call
+
+  puts result[:markdown]
+rescue => e
+  $stderr.puts e.message
+  exit 1
+end
