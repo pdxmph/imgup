@@ -6,16 +6,13 @@
     %h3
       %i.fa-brands.fa-markdown
     %textarea{:style => "float:left;height:6em;margin-bottom:3rem;"}
-      = "![#{@alt}](#{@image_url})"
+      = @markdown
 
     %h3{:style => "clear:left;"}
       %i.fa-solid.fa-code
     %textarea{:style => "float:left;height:6em;margin-bottom:3rem;"}
-      = "<img src='#{@image_url}' alt='#{@alt}' />"
+      = @html
     %br/
-        
+
   .column-right
     %img{:src => "#{@thumbnail}" , :style => "margin-top:2em;"}
-
-
-  

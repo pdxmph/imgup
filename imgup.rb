@@ -6,11 +6,13 @@ require 'json'
 require 'typhoeus'
 require 'oauth'
 require 'oauth/consumer'
+require 'uri'
 require "oauth/request_proxy/typhoeus_request"
 include FileUtils::Verbose
 require_relative 'lib/imgup/uploader'
-
 require 'dotenv/load'
+Dotenv.load('.env', File.expand_path('~/.imgup.env'))
+
 p ENV.slice(
   'SMUGMUG_TOKEN',
   'SMUGMUG_SECRET',
@@ -18,6 +20,19 @@ p ENV.slice(
   'SMUGMUG_ACCESS_TOKEN_SECRET',
   'SMUGMUG_UPLOAD_ALBUM_ID'
 )
+
+#— your SmugMug config pulled from ENV —
+API_BASE        = ENV.fetch('SMUGMUG_API_URL',      'https://api.smugmug.com')
+UPLOAD_URL      = ENV.fetch('SMUGMUG_UPLOAD_URL',    'https://upload.smugmug.com/')
+ALBUM_ID        = ENV.fetch('SMUGMUG_UPLOAD_ALBUM_ID')
+CONSUMER_KEY    = ENV.fetch('SMUGMUG_TOKEN')
+CONSUMER_SECRET = ENV.fetch('SMUGMUG_SECRET')
+ACCESS_TOKEN    = ENV.fetch('SMUGMUG_ACCESS_TOKEN')
+ACCESS_SECRET   = ENV.fetch('SMUGMUG_ACCESS_TOKEN_SECRET')
+
+#— build your OAuth client once —
+CONSUMER = OAuth::Consumer.new(CONSUMER_KEY, CONSUMER_SECRET, site: API_BASE)
+ACCESS   = OAuth::AccessToken.new(CONSUMER, ACCESS_TOKEN, ACCESS_SECRET)
 
 
 set :environment, :development
@@ -110,15 +125,25 @@ end
 # TODO: Check out the headers syntax for that
 # Yup. Looks like this:
 # @response = @token.post('/people', @person.to_xml, { 'Accept'=>'application/xml', 'Content-Type' => 'application/xml' })
- 
+
 post '/upload_smugmug' do
   file    = params[:file][:tempfile].path
   title   = params[:title]
   caption = params[:caption]
-  result  = ImgUp::Uploader.new(file, title: title, caption: caption).call
 
-  session[:image] = result
-  redirect '/post_image'
+  # use the same Uploader class the CLI uses
+  result = ImgUp::Uploader.new(
+    file,
+    title:   title,
+    caption: caption
+  ).call
+
+  # pull the fully‐qualified URL & snippets from its hash
+  @img_url  = result[:url]       # e.g. https://photos.smugmug.com/…/i-XXX-XL.jpg
+  @markdown = result[:markdown]  # ![…](https://…)
+  @html     = result[:html]      # <img src='…' alt='…' />
+
+  haml :post_image
 end
 
 
@@ -141,34 +166,47 @@ get '/post_image', { provides: 'html' } do
   haml :post_image
 end
 
-get '/recent', {provides: 'html'} do 
-  if(params.has_key?(:count))
-    count = params[:count]
-  else
-    count = 10
+# imgup.rb
+
+# in imgup.rb, replace your get '/recent' block with this:
+
+# imgup.rb
+get '/recent', provides: 'html' do
+  # 1) Determine how many to fetch (default 10)
+  count = params[:count] || 10
+
+  # 2) Fetch the album’s image list via the !images expansion
+  album_path = "#{API_BASE}/api/v2/album/#{ALBUM_ID}!images?count=#{count}"
+  image_list = ACCESS.get(album_path, { 'Accept' => 'application/json' }).body
+  @album_images = JSON.parse(image_list).dig('Response','AlbumImage') || []
+
+  # 3) Build @recents just like your old code did
+  @recents = @album_images.map do |i|
+    image_uri    = i.dig('Uris','Image','Uri')
+    title        = i['Title']
+    thumb        = i['ThumbnailUrl']
+    caption      = i['Caption']
+    link         = i['WebUri']
+
+    # 4) Fetch the sizedetails for XLarge
+    sizes_path  = "#{API_BASE}#{image_uri}!sizedetails"
+    sizes_body  = ACCESS.get(sizes_path, { 'Accept' => 'application/json' }).body
+    image_url   = JSON.parse(sizes_body)
+                  .dig('Response','ImageSizeDetails','ImageSizeXLarge','Url')
+
+    {
+      thumb:      thumb,
+      caption:    caption,
+      image_url:  image_url,
+      title:      title,
+      image_link: link
+    }
   end
-  
-  album_path = smugmug_base_url + "/api/v2/album/8m9hF8!images?count=#{count}"
-  image_list = @access_token.get(album_path, { 'Accept' => 'application/json' }).body
-  @album_images = JSON.parse(image_list)['Response']['AlbumImage']
-  @recents = []
-  
-  @album_images.each do |i|
-    image_key = i['ImageKey']
-    image_uri = i['Uris']['Image']['Uri']
-    title = i['Title']
-    thumb = i['ThumbnailUrl']
-    caption = i['Caption']
-    link = i['WebUri']
-    image_path = smugmug_base_url + image_uri
-    image_sizes = @access_token.get(image_path + "!sizedetails", { 'Accept'=>'application/json' }).body
-    image_url = JSON.parse(image_sizes)['Response']['ImageSizeDetails']['ImageSizeXLarge']['Url']
-    @recents << {:thumb => thumb, :caption => caption, :image_url => image_url, :title => title, :image_link => link}
-  end
+
   haml :recent
 end
 
-get '/potw', {provides: 'html'} do 
+get '/potw', {provides: 'html'} do
   
   if(params.has_key?(:count))
     count = params[:count]
