@@ -35,7 +35,7 @@ CONSUMER = OAuth::Consumer.new(CONSUMER_KEY, CONSUMER_SECRET, site: API_BASE)
 ACCESS   = OAuth::AccessToken.new(CONSUMER, ACCESS_TOKEN, ACCESS_SECRET)
 
 
-set :environment, :development
+set :environment, :production
 set :bind, '0.0.0.0'
 run_dir = File.dirname(__FILE__)
 run_dir = Dir.pwd if (run_dir == '.')
