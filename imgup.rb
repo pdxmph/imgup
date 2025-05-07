@@ -142,7 +142,7 @@ post '/upload_smugmug' do
   @img_url  = result[:url]       # e.g. https://photos.smugmug.com/…/i-XXX-XL.jpg
   @markdown = result[:markdown]  # ![…](https://…)
   @html     = result[:html]      # <img src='…' alt='…' />
-
+  @org      = result[:org]       # uses custom org img link format
   haml :post_image
 end
 

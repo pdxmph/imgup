@@ -153,7 +153,8 @@ module ImgUp
       {
         url:      full_url,
         markdown: "![#{@title}](#{full_url})",
-        html:     "<img src='#{full_url}' alt='#{@title}' />"
+        html:     "<img src='#{full_url}' alt='#{@title}' />",
+        org:      "[[img:#{full_url}][#{@title}]]"
       }
     end
   end

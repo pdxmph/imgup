@@ -53,7 +53,7 @@ begin
     title:   options[:title],
     caption: options[:caption]
   ).call
-  puts result[:markdown]
+  puts result[:org]
 rescue => e
   $stderr.puts e.message
   exit 1
