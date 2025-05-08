@@ -25,6 +25,7 @@ GEM
     hashie (5.0.0)
     logger (1.7.0)
     method_source (1.1.0)
+    multipart-post (2.4.1)
     mustermann (3.0.3)
       ruby2_keywords (~> 0.0.1)
     nio4r (2.7.4)
@@ -76,7 +77,6 @@ PLATFORMS
   arm-linux-gnu
   arm-linux-musl
   arm64-darwin
-  ruby
   x86-linux-gnu
   x86-linux-musl
   x86_64-darwin
@@ -86,6 +86,7 @@ PLATFORMS
 DEPENDENCIES
   dotenv
   haml
+  multipart-post
   oauth
   pry
   pry-byebug
@@ -93,6 +94,7 @@ DEPENDENCIES
   rack
   rackup
   sinatra
+  thor
   typhoeus
 
 RUBY VERSION

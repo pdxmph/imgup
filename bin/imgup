@@ -1,22 +1,31 @@
 #!/usr/bin/env ruby
 
-# Load environment variables from project and user scope
 require 'dotenv'
 Dotenv.load('.env', File.expand_path('~/.imgup.env'))
 
 require 'optparse'
 require_relative '../lib/imgup/uploader'
 
-options = {}
+# 1. Set defaults
+options = {
+  format: 'md'     # default if user doesn't pass -f
+}
+
 parser = OptionParser.new do |opts|
   opts.banner = "Usage: imgup [options] <path/to/image>"
 
-  opts.on("-tTITLE", "--title=TITLE", "Image title (default: filename)") do |t|
+  opts.on("-t TITLE", "--title=TITLE", "Image title (default: filename)") do |t|
     options[:title] = t
   end
 
-  opts.on("-cCAPTION", "--caption=CAPTION", "Image caption (optional)") do |c|
+  opts.on("-c CAPTION", "--caption=CAPTION", "Image caption (optional)") do |c|
     options[:caption] = c
+  end
+
+  # 2. Restrict format to only these three values
+  opts.on("-f FORMAT", "--format=FORMAT", %w[org md html],
+          "Output format (org, md, html). Defaults to md.") do |fmt|
+    options[:format] = fmt
   end
 
   opts.on("-h", "--help", "Show this help message") do
@@ -25,7 +34,6 @@ parser = OptionParser.new do |opts|
   end
 end
 
-# Remove parsed options from ARGV, leaving only the image path
 begin
   parser.parse!
 rescue OptionParser::InvalidOption => e
@@ -34,7 +42,7 @@ rescue OptionParser::InvalidOption => e
   exit 1
 end
 
-# Ensure exactly one positional argument (the file path)
+# 3. Validate positional argument
 if ARGV.length != 1
   $stderr.puts parser
   exit 1
@@ -46,14 +54,25 @@ unless File.file?(file)
   exit 1
 end
 
-# Perform upload and output Markdown snippet
+# 4. Upload + dispatch on format
 begin
   result = ImgUp::Uploader.new(
     file,
     title:   options[:title],
     caption: options[:caption]
   ).call
-  puts result[:org]
+
+  key = case options[:format]
+        when 'org'  then :org
+        when 'html' then :html
+        else              # covers 'md' or anything else (shouldn't happen)
+          :markdown
+        end
+
+  puts result.fetch(key)  # fetch will blow up if key is missing
+rescue KeyError => e
+  $stderr.puts "No snippet for format #{options[:format].inspect}"
+  exit 1
 rescue => e
   $stderr.puts e.message
   exit 1
