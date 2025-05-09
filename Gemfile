@@ -1,20 +1,13 @@
-source 'https://rubygems.org'
+# Gemfile
+source "https://rubygems.org"
 
-ruby '~> 3.2.3'
-group  :development do
-  gem 'dotenv'
-  gem 'pry'
-  gem 'pry-byebug'
+gemspec
+
+gem "dotenv",    "~> 2.7"
+gem "oauth",     "~> 0.5"
+gem "multipart-post", "~> 2.1"
+
+group :test do
+  gem "rspec",    "~> 3.10"
+  gem "webmock",  "~> 3.15"
 end
-
-
-gem 'haml'
-gem 'oauth'
-gem 'puma'
-gem 'rack'
-gem 'sinatra'
-gem 'typhoeus'
-gem 'rackup'
-gem 'thor'
-gem 'dotenv'
-gem 'multipart-post'
