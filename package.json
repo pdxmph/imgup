@@ -7,10 +7,12 @@
     "deploy": "wrangler deploy",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "icons": "node scripts/render-icons.mjs"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250101.0",
+    "sharp": "^0.33.0",
     "typescript": "^5.6.0",
     "vitest": "^2.1.0",
     "wrangler": "^3.90.0"
