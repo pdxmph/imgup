@@ -10,7 +10,19 @@
     <script src="https://kit.fontawesome.com/96d20ed16f.js" crossorigin="anonymous"></script>
     <script>
       // theme: respect saved choice; runs inline before paint to avoid flash.
+      // Also keeps the iOS PWA status-bar / safe-area color (meta theme-color)
+      // in sync with the active theme so the bezel doesn't stay dark in light mode.
       (function () {
+        var THEME_BG = { dark: "#1a1110", light: "#f3ead6" };
+        function effectiveTheme() {
+          var explicit = document.documentElement.getAttribute("data-theme");
+          if (explicit === "light" || explicit === "dark") return explicit;
+          return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+        }
+        function syncMeta() {
+          var meta = document.getElementById("theme-color-meta");
+          if (meta) meta.setAttribute("content", THEME_BG[effectiveTheme()]);
+        }
         try {
           var saved = localStorage.getItem("imgup-theme");
           if (saved === "light" || saved === "dark") {
@@ -27,11 +39,22 @@
           else next = sysLight ? "dark" : "light";
           r.setAttribute("data-theme", next);
           try { localStorage.setItem("imgup-theme", next); } catch (e) {}
+          syncMeta();
         };
+        // Sync once after the meta tag is parsed; if the meta isn't in the DOM yet
+        // (script runs before the link/meta below), retry on DOMContentLoaded.
+        if (document.getElementById("theme-color-meta")) syncMeta();
+        else document.addEventListener("DOMContentLoaded", syncMeta);
+        // Also follow OS pref changes when the user hasn't explicitly chosen.
+        try {
+          window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", function () {
+            if (!document.documentElement.getAttribute("data-theme")) syncMeta();
+          });
+        } catch (e) {}
       })();
     </script>
     <link rel="manifest" href="/manifest.webmanifest" />
-    <meta name="theme-color" content="#1a1110" />
+    <meta id="theme-color-meta" name="theme-color" content="#1a1110" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />

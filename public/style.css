@@ -655,7 +655,6 @@ article {
   padding: var(--space-1) var(--space-3);
   font-family: var(--font-mono);
   font-size: var(--fs-sm);
-  line-height: var(--lh-snug);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
