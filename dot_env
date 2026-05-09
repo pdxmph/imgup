@@ -1,4 +1,0 @@
-# Change the variables to suit and rename to `.env`
-# `.env` is in .gitignore. Never check .env into source control
-
-# TODO stub in example variables with documentation, meanwhile find them in imgup.rb at the top
