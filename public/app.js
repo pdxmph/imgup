@@ -44,7 +44,8 @@ function applyRoute() {
   });
 
   // Refresh recent every time we land on it (gives the nav link a "reload" feel).
-  if (target === "recent") loadRecent();
+  // fresh: true skips the Worker edge cache so the user sees genuinely-current data.
+  if (target === "recent") loadRecent({ fresh: true });
 
   // Defeat the browser's default fragment-scroll, which would push the header
   // off-screen because #upload / #recent / #result are all top-level <section>s.
@@ -132,14 +133,15 @@ function renderResult({ url, markdown, html, org }) {
 
 // ---------- recent ----------
 
-async function loadRecent() {
+async function loadRecent({ fresh = false } = {}) {
   const grid = document.getElementById("recent-grid");
   const empty = document.getElementById("recent-empty");
   grid.textContent = "";
   empty.hidden = true;
 
   try {
-    const resp = await fetch(`/api/recent?count=${RECENT_COUNT}`);
+    const url = `/api/recent?count=${RECENT_COUNT}${fresh ? "&fresh=1" : ""}`;
+    const resp = await fetch(url);
     if (!resp.ok) {
       const j = await resp.json().catch(() => ({}));
       grid.textContent = `error loading recent: ${j.error || resp.status}`;

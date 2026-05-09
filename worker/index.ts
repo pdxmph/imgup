@@ -64,10 +64,13 @@ async function handleRecent(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
   const countParam = url.searchParams.get("count");
   const count = parsePositiveInt(countParam) ?? 10;
+  const fresh = url.searchParams.get("fresh") === "1";
 
   const cacheKey = recentCacheKey(request, count);
-  const cached = await caches.default.match(cacheKey);
-  if (cached) return cached;
+  if (!fresh) {
+    const cached = await caches.default.match(cacheKey);
+    if (cached) return cached;
+  }
 
   try {
     const items = await listRecent(env, { count });

@@ -6,7 +6,7 @@
 // converts the failed fetch into a top-level navigation so the browser can
 // follow Access's challenge instead of resolving to a broken Response.
 
-const CACHE_VERSION = "2026-05-09-2"; // bump when shipping frontend changes
+const CACHE_VERSION = "2026-05-09-3"; // bump when shipping frontend changes
 const CACHE_NAME = `imgup-shell-v${CACHE_VERSION}`;
 
 const SHELL = [
@@ -40,6 +40,12 @@ self.addEventListener("activate", (event) => {
           .map((n) => caches.delete(n))
       );
       await self.clients.claim();
+      // Force-reload any controlled windows so they pick up the new shell on
+      // the same launch, instead of needing a second force-quit + relaunch.
+      try {
+        const wins = await self.clients.matchAll({ type: "window" });
+        await Promise.all(wins.map((c) => c.navigate(c.url).catch(() => {})));
+      } catch {}
     })
   );
 });
