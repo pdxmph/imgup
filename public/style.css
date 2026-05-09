@@ -317,8 +317,7 @@ body {
   display: block;
 }
 body > header,
-body > main,
-body > footer {
+body > main {
   max-inline-size: 64rem;
   margin-inline: auto;
   padding-inline: var(--space-5);
@@ -329,11 +328,6 @@ body > header {
 }
 body > main {
   padding-block: var(--space-5) var(--space-7);
-}
-body > footer {
-  padding-block: var(--space-7) var(--space-6);
-  border-top: 1px solid var(--border);
-  margin-top: var(--space-8);
 }
 
 article {
@@ -652,30 +646,24 @@ article {
 .recent-empty { color: var(--text-muted); padding: 3rem 0; }
 .recent-empty h2 { color: var(--text); }
 
-/* footer micro-type */
-body > footer p {
-  color: var(--text-dim);
-  font-family: var(--font-mono);
-  font-size: var(--fs-xs);
-  letter-spacing: .05em;
-}
-
-/* theme toggle */
+/* theme toggle — sits in the header nav alongside the link buttons */
 .theme-toggle {
   background: transparent;
-  color: var(--text-muted);
+  color: var(--accent);
   border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: .15rem .55rem;
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-3);
   font-family: var(--font-mono);
   font-size: var(--fs-sm);
+  line-height: var(--lh-snug);
   cursor: pointer;
-  margin-left: .5rem;
+  display: inline-flex;
+  align-items: center;
 }
-.theme-toggle:hover { color: var(--accent); border-color: var(--accent); }
+.theme-toggle:hover { color: var(--accent-hover); border-color: var(--accent); background: var(--surface); }
 
 @media screen and (max-width: 760px) {
-  body > header, body > main, body > footer {
+  body > header, body > main {
     padding-inline: var(--space-4);
   }
   .upload-form input[type="text"] { width: 100%; }
