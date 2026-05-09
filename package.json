@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev",
+    "dev": "wrangler dev --port 4567",
     "deploy": "wrangler deploy",
     "test": "vitest run",
     "test:watch": "vitest",
