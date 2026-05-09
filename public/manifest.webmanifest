@@ -2,7 +2,7 @@
   "name": "imgup",
   "short_name": "imgup",
   "description": "personal smugmug uploader",
-  "start_url": "/#upload",
+  "start_url": "/#/upload",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",

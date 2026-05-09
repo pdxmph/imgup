@@ -24,12 +24,15 @@ function initRouter() {
 }
 
 function applyRoute() {
-  const hash = (location.hash || "#upload").replace(/^#/, "");
+  // Routes use a leading "/" so the hash never matches a real element id —
+  // prevents the browser's default fragment-scroll from pushing the header
+  // off-screen on launch / nav.
+  const hash = (location.hash || "#/upload").replace(/^#\/?/, "");
   const target = VIEWS.includes(hash) ? hash : "upload";
 
-  // Don't land on #result without a result to show — bounce back to upload.
+  // Don't land on #/result without a result to show — bounce back to upload.
   if (target === "result" && !document.getElementById("result-thumb").src) {
-    location.hash = "#upload";
+    location.hash = "#/upload";
     return;
   }
 
@@ -40,16 +43,12 @@ function applyRoute() {
 
   document.querySelectorAll("body > header nav a").forEach((a) => {
     const li = a.closest("li");
-    if (li) li.hidden = a.getAttribute("href") === `#${target}`;
+    if (li) li.hidden = a.getAttribute("href") === `#/${target}`;
   });
 
   // Refresh recent every time we land on it (gives the nav link a "reload" feel).
   // fresh: true skips the Worker edge cache so the user sees genuinely-current data.
   if (target === "recent") loadRecent({ fresh: true });
-
-  // Defeat the browser's default fragment-scroll, which would push the header
-  // off-screen because #upload / #recent / #result are all top-level <section>s.
-  window.scrollTo(0, 0);
 }
 
 // ---------- upload ----------
@@ -98,8 +97,8 @@ function initUploadForm() {
 
       renderResult(body);
       form.reset();
-      location.hash = "#result";
-      await loadRecent();
+      location.hash = "#/result";
+      await loadRecent({ fresh: true });
     } catch (err) {
       alert(`upload failed: ${err.message}`);
     } finally {
