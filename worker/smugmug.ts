@@ -112,3 +112,110 @@ export class SmugmugError extends Error {
     this.name = "SmugmugError";
   }
 }
+
+export type RecentImage = {
+  thumb: string;
+  image_url: string;
+  title: string;
+  caption: string;
+  web_uri: string;
+};
+
+export async function listRecent(
+  env: SmugmugEnv,
+  args: { count: number }
+): Promise<RecentImage[]> {
+  const albumUrl =
+    `${API_BASE}/api/v2/album/${env.SMUGMUG_UPLOAD_ALBUM_ID}!images` +
+    `?count=${args.count}&_expand=ImageSizeDetails`;
+
+  const auth = await signRequest({
+    method: "GET",
+    url: albumUrl,
+    consumerKey: env.SMUGMUG_TOKEN,
+    consumerSecret: env.SMUGMUG_SECRET,
+    token: env.SMUGMUG_ACCESS_TOKEN,
+    tokenSecret: env.SMUGMUG_ACCESS_TOKEN_SECRET,
+  });
+  const resp = await fetch(albumUrl, {
+    method: "GET",
+    headers: { Authorization: auth, Accept: "application/json" },
+  });
+  if (!resp.ok) {
+    throw new SmugmugError(`album-list failed: HTTP ${resp.status}`, resp.status);
+  }
+  const body = (await resp.json()) as {
+    Response?: { AlbumImage?: AlbumImageJson[] };
+  };
+  const images = body.Response?.AlbumImage ?? [];
+  if (images.length === 0) return [];
+
+  // Cheap path: every image already carries inline ImageSizeDetails.
+  const cheap = images
+    .map((i) => extractInlineSizeUrl(i))
+    .every((url) => typeof url === "string");
+
+  if (cheap) {
+    return images.map((i) => ({
+      thumb: i.ThumbnailUrl ?? "",
+      image_url: extractInlineSizeUrl(i)!,
+      title: i.Title ?? "",
+      caption: i.Caption ?? "",
+      web_uri: i.WebUri ?? "",
+    }));
+  }
+
+  // Fallback: per-image !sizedetails fan-out.
+  return Promise.all(
+    images.map(async (i) => {
+      const imageUri = i.Uris?.Image?.Uri;
+      if (!imageUri) {
+        throw new SmugmugError(`missing Uris.Image.Uri for ${i.Title}`, 502);
+      }
+      const detailsUrl = `${API_BASE}${imageUri}!sizedetails`;
+      const a = await signRequest({
+        method: "GET",
+        url: detailsUrl,
+        consumerKey: env.SMUGMUG_TOKEN,
+        consumerSecret: env.SMUGMUG_SECRET,
+        token: env.SMUGMUG_ACCESS_TOKEN,
+        tokenSecret: env.SMUGMUG_ACCESS_TOKEN_SECRET,
+      });
+      const r = await fetch(detailsUrl, {
+        method: "GET",
+        headers: { Authorization: a, Accept: "application/json" },
+      });
+      if (!r.ok) throw new SmugmugError(`sizedetails failed: HTTP ${r.status}`, r.status);
+      const j = (await r.json()) as {
+        Response?: { ImageSizeDetails?: { ImageSizeXLarge?: { Url?: string } } };
+      };
+      const url = j.Response?.ImageSizeDetails?.ImageSizeXLarge?.Url;
+      if (!url) throw new SmugmugError(`no XLarge url in sizedetails`, 502);
+      return {
+        thumb: i.ThumbnailUrl ?? "",
+        image_url: url,
+        title: i.Title ?? "",
+        caption: i.Caption ?? "",
+        web_uri: i.WebUri ?? "",
+      };
+    })
+  );
+}
+
+type AlbumImageJson = {
+  ImageKey?: string;
+  Title?: string;
+  Caption?: string;
+  ThumbnailUrl?: string;
+  WebUri?: string;
+  Uris?: {
+    Image?: { Uri?: string };
+    ImageSizeDetails?: {
+      ImageSizeDetails?: { ImageSizeXLarge?: { Url?: string } };
+    };
+  };
+};
+
+function extractInlineSizeUrl(i: AlbumImageJson): string | undefined {
+  return i.Uris?.ImageSizeDetails?.ImageSizeDetails?.ImageSizeXLarge?.Url;
+}

@@ -106,3 +106,88 @@ describe("uploadFile", () => {
     await expect(uploadFile(env, { file, title: "x", caption: "" })).rejects.toThrow(/401/);
   });
 });
+
+import { listRecent } from "../worker/smugmug";
+
+describe("listRecent", () => {
+  it("uses the cheap _expand path when ImageSizeDetails is present inline", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch");
+
+    fetchMock.mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          Response: {
+            AlbumImage: [
+              {
+                ImageKey: "k1",
+                Title: "First",
+                Caption: "c1",
+                ThumbnailUrl: "https://t/1.jpg",
+                WebUri: "https://w/1",
+                Uris: { ImageSizeDetails: { ImageSizeDetails: { ImageSizeXLarge: { Url: "https://full/1.jpg" } } } },
+              },
+              {
+                ImageKey: "k2",
+                Title: "Second",
+                Caption: "c2",
+                ThumbnailUrl: "https://t/2.jpg",
+                WebUri: "https://w/2",
+                Uris: { ImageSizeDetails: { ImageSizeDetails: { ImageSizeXLarge: { Url: "https://full/2.jpg" } } } },
+              },
+            ],
+          },
+        }),
+        { status: 200 }
+      )
+    );
+
+    const result = await listRecent(env, { count: 10 });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1); // cheap path: no fan-out
+    expect(fetchMock.mock.calls[0]![0]).toMatch(/_expand=ImageSizeDetails/);
+    expect(result).toEqual([
+      { thumb: "https://t/1.jpg", image_url: "https://full/1.jpg", title: "First", caption: "c1", web_uri: "https://w/1" },
+      { thumb: "https://t/2.jpg", image_url: "https://full/2.jpg", title: "Second", caption: "c2", web_uri: "https://w/2" },
+    ]);
+  });
+
+  it("falls back to N+1 when inline expansion lacks size URLs", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch");
+
+    // Album list, no inline sizes
+    fetchMock.mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          Response: {
+            AlbumImage: [
+              { Title: "A", Caption: "", ThumbnailUrl: "https://t/a", WebUri: "https://w/a", Uris: { Image: { Uri: "/api/v2/image/A" } } },
+              { Title: "B", Caption: "", ThumbnailUrl: "https://t/b", WebUri: "https://w/b", Uris: { Image: { Uri: "/api/v2/image/B" } } },
+            ],
+          },
+        }),
+        { status: 200 }
+      )
+    );
+
+    // Per-image !sizedetails calls
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ Response: { ImageSizeDetails: { ImageSizeXLarge: { Url: "https://full/A.jpg" } } } }), { status: 200 })
+    );
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ Response: { ImageSizeDetails: { ImageSizeXLarge: { Url: "https://full/B.jpg" } } } }), { status: 200 })
+    );
+
+    const result = await listRecent(env, { count: 10 });
+
+    expect(fetchMock).toHaveBeenCalledTimes(3); // album list + 2 fan-out
+    expect(result.map((r) => r.image_url)).toEqual(["https://full/A.jpg", "https://full/B.jpg"]);
+  });
+
+  it("returns an empty array when the album has no images", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch");
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ Response: {} }), { status: 200 })
+    );
+    expect(await listRecent(env, { count: 10 })).toEqual([]);
+  });
+});
