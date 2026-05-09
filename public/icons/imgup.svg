@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="imgup">
+  <rect width="512" height="512" fill="#f1e5cf"/>
+  <g stroke="#a3393a" stroke-width="14" fill="none" stroke-linecap="square">
+    <path d="M 80 80 L 80 160 M 80 80 L 160 80"/>
+    <path d="M 432 80 L 432 160 M 432 80 L 352 80"/>
+    <path d="M 80 432 L 80 352 M 80 432 L 160 432"/>
+    <path d="M 432 432 L 432 352 M 432 432 L 352 432"/>
+  </g>
+  <text x="256" y="345"
+        font-family="'IBM Plex Mono', ui-monospace, monospace"
+        font-weight="600"
+        font-size="280"
+        fill="#a3393a"
+        text-anchor="middle">i</text>
+</svg>
