@@ -49,6 +49,13 @@ function applyRoute() {
   // Refresh recent every time we land on it (gives the nav link a "reload" feel).
   // fresh: true skips the Worker edge cache so the user sees genuinely-current data.
   if (target === "recent") loadRecent({ fresh: true });
+
+  // Focus the title field on the upload view without the focus-into-view scroll
+  // that the HTML `autofocus` attribute caused on PWA launch.
+  if (target === "upload") {
+    const title = document.getElementById("upload-title");
+    if (title) title.focus({ preventScroll: true });
+  }
 }
 
 // ---------- upload ----------
