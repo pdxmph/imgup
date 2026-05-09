@@ -42,6 +42,13 @@ function applyRoute() {
     const li = a.closest("li");
     if (li) li.hidden = a.getAttribute("href") === `#${target}`;
   });
+
+  // Refresh recent every time we land on it (gives the nav link a "reload" feel).
+  if (target === "recent") loadRecent();
+
+  // Defeat the browser's default fragment-scroll, which would push the header
+  // off-screen because #upload / #recent / #result are all top-level <section>s.
+  window.scrollTo(0, 0);
 }
 
 // ---------- upload ----------
