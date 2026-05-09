@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>imgup</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="https://cdn.simplecss.org/simple.min.css" rel="stylesheet" />
+    <link href="/style.css" rel="stylesheet" />
+    <script src="https://kit.fontawesome.com/96d20ed16f.js" crossorigin="anonymous"></script>
+    <script>
+      // theme: respect saved choice; runs inline before paint to avoid flash.
+      (function () {
+        try {
+          var saved = localStorage.getItem("imgup-theme");
+          if (saved === "light" || saved === "dark") {
+            document.documentElement.setAttribute("data-theme", saved);
+          }
+        } catch (e) {}
+        window.imgupToggleTheme = function () {
+          var r = document.documentElement;
+          var cur = r.getAttribute("data-theme");
+          var sysLight = window.matchMedia("(prefers-color-scheme: light)").matches;
+          var next;
+          if (cur === "light") next = "dark";
+          else if (cur === "dark") next = "light";
+          else next = sysLight ? "dark" : "light";
+          r.setAttribute("data-theme", next);
+          try { localStorage.setItem("imgup-theme", next); } catch (e) {}
+        };
+      })();
+    </script>
+  </head>
+  <body>
+    <header>
+      <h1 class="weblog-title">
+        <a href="/">
+          <i class="fa-image fa-solid meteor"></i>
+          imgup
+        </a>
+      </h1>
+      <nav>
+        <ul>
+          <li>
+            <a href="#upload" title="Upload a photo">
+              <i class="fa-solid fa-image meteor"></i>
+              upload
+            </a>
+          </li>
+          <li>
+            <a href="#recent" title="Recent uploads">
+              <i class="fa-brands fa-markdown meteor"></i>
+              recent
+            </a>
+          </li>
+          <li>
+            <a href="https://www.smugmug.com/app/organize/Uploads" title="Open the SmugMug album">
+              <i class="fa-solid fa-images meteor"></i>
+              album
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </header>
+
+    <main>
+      <section id="upload">
+        <form id="upload-form" class="upload-form" enctype="multipart/form-data">
+          <div class="field">
+            <label class="upload-label" for="upload-title">title</label>
+            <input id="upload-title" name="title" type="text" placeholder="what to call this one" autofocus autocomplete="off" />
+          </div>
+          <div class="field">
+            <label class="upload-label" for="upload-caption">
+              caption
+              <span class="upload-hint"> · used as alt text</span>
+            </label>
+            <input id="upload-caption" name="caption" type="text" placeholder="what's in the frame" autocomplete="off" />
+          </div>
+          <div class="field">
+            <label class="upload-label" for="upload-file">photo</label>
+            <input id="upload-file" name="file" type="file" accept="image/*" required />
+          </div>
+          <input id="upload-submit" type="submit" value="upload" />
+          <p id="upload-status" class="upload-status">uploading to smugmug — this can take a moment.</p>
+        </form>
+
+        <article id="result" class="contact-card contact-card--solo" hidden>
+          <p class="upload-success">uploaded. snippets below.</p>
+          <button id="result-photo" class="contact-card__photo" type="button" data-lightbox-src="" data-lightbox-alt="just-uploaded photo" aria-label="view photo larger">
+            <span class="photo-frame">
+              <img id="result-thumb" class="contact-card__thumb contact-card__thumb--natural" src="" alt="uploaded photo" />
+            </span>
+          </button>
+          <div class="contact-card__copy-row">
+            <button class="copy-icon-btn" type="button" data-copy-text="" data-copy-target="md" aria-label="copy markdown" title="copy markdown">
+              <i class="fa-brands fa-markdown"></i>
+            </button>
+            <button class="copy-icon-btn" type="button" data-copy-text="" data-copy-target="org" aria-label="copy org" title="copy org">
+              <i class="fa-solid fa-asterisk"></i>
+            </button>
+            <button class="copy-icon-btn" type="button" data-copy-text="" data-copy-target="html" aria-label="copy html" title="copy html">
+              <i class="fa-solid fa-code"></i>
+            </button>
+          </div>
+        </article>
+      </section>
+
+      <section id="recent">
+        <h2 class="recent-heading">recent</h2>
+        <div id="recent-grid" class="contact-grid" aria-live="polite"></div>
+        <section id="recent-empty" class="recent-empty" hidden>
+          <h2>nothing here yet.</h2>
+          <p>the upload album is empty.</p>
+        </section>
+      </section>
+    </main>
+
+    <dialog id="lightbox" class="lightbox">
+      <button class="lightbox__close" type="button" aria-label="close">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <img class="lightbox__img" src="" alt="" />
+    </dialog>
+
+    <footer>
+      <p>
+        made by
+        <a href="https://mph.omg.lol">mph</a>
+        ·
+        <button class="theme-toggle" type="button" onclick="imgupToggleTheme()" aria-label="toggle theme" title="toggle theme">
+          <i class="fa-solid fa-circle-half-stroke"></i>
+        </button>
+      </p>
+    </footer>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
