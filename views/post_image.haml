@@ -1,25 +1,27 @@
--img_url = params['img_url']
--alt = params['alt']
+- photo_url = @thumbnail || @img_url
 
-.row
-  .column-left
-    %h3
+%p.upload-success uploaded. snippets below.
+
+%article.contact-card.contact-card--solo
+  %button.contact-card__photo{type: "button",
+                                "data-lightbox-src" => photo_url,
+                                "data-lightbox-alt" => "just-uploaded photo",
+                                "aria-label" => "view photo larger"}
+    .photo-frame
+      %img.contact-card__thumb.contact-card__thumb--natural{src: photo_url, alt: "uploaded photo"}
+  .contact-card__copy-row
+    %button.copy-icon-btn{type: "button",
+                            "data-copy-text" => @markdown,
+                            "aria-label" => "copy markdown",
+                            title: "copy markdown"}
       %i.fa-brands.fa-markdown
-    %textarea{:style => "float:left;height:6em;margin-bottom:3rem;"}
-      = @markdown
-
-    %h3{:style => "clear:left;"}
+    %button.copy-icon-btn{type: "button",
+                            "data-copy-text" => @org,
+                            "aria-label" => "copy org",
+                            title: "copy org"}
       %i.fa-solid.fa-asterisk
-    %textarea{:style => "float:left;height:6em;margin-bottom:3rem;"}
-      = @org
-    %br/
-
-
-    %h3{:style => "clear:left;"}
+    %button.copy-icon-btn{type: "button",
+                            "data-copy-text" => @html,
+                            "aria-label" => "copy html",
+                            title: "copy html"}
       %i.fa-solid.fa-code
-    %textarea{:style => "float:left;height:6em;margin-bottom:3rem;"}
-      = @html
-    %br/
-
-  .column-right
-    %img{:src => "#{@thumbnail}" , :style => "margin-top:2em;"}

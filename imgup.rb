@@ -44,6 +44,32 @@ Dir.mkdir("tmp") unless Dir.exist?("tmp")
 
 set :haml, { escape_html: false }
 set :sessions, true
+set :show_exceptions, false
+set :raise_errors, false
+
+# Catch anything the Uploader / SmugMug calls raise and render the friendly error page.
+error do
+  err = env['sinatra.error']
+  msg = err ? err.message.to_s : ''
+  @status =
+    case msg
+    when /HTTP 401/, /HTTP 403/, /Unauthorized/i then 401
+    when /HTTP 404/                              then 404
+    when /HTTP 413/                              then 413
+    when /HTTP 429/                              then 429
+    when /HTTP 5\d\d/                            then 502
+    else 500
+    end
+  @resp = err ? "#{err.class}: #{err.message}" : nil
+  status @status
+  haml :error
+end
+
+not_found do
+  @status = 404
+  @resp = nil
+  haml :error
+end
 
 smugmug_upload_url = "https://upload.smugmug.com/"
 smugmug_base_url = "https://api.smugmug.com"

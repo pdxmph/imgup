@@ -1,4 +1,24 @@
-%h2 
-  Error
+- status_code = @status || 500
+- friendly = { 401 => "smugmug auth lapsed.", 403 => "smugmug auth lapsed.", 404 => "nothing here.", 413 => "that file's too big for smugmug.", 429 => "smugmug rate-limited us. wait a minute." }[status_code]
+- friendly ||= (status_code >= 500 ? "smugmug had a wobble." : "something broke mid-flow.")
 
-= "#{@resp}"
+%section.errpage
+  %p.errpage-status
+    = "err #{status_code}"
+  %h2.errpage-headline= friendly
+  %p.errpage-recovery
+    - if [401, 403].include?(status_code)
+      re-authenticate, then try again.
+      %br/
+      %a{href: "/request"} → sign back in to smugmug
+      %br/
+      %a{href: "/"} → home
+    - else
+      %a{href: "/"} → home
+      %br/
+      %a{href: "javascript:history.back()"} ← back
+
+  - if @resp && !@resp.to_s.strip.empty?
+    %details.errpage-details
+      %summary raw response
+      %pre= @resp.to_s

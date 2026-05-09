@@ -3,115 +3,171 @@
   %head
     %meta{content: "text/html; charset=UTF-8", "http-equiv" => "Content-Type"}/
     
-    %title imgup: An image management tool
+    %title imgup
     %meta{charset: "utf-8"}/
     %meta{content: "width=device-width, initial-scale=1", name: "viewport"}/
     %link{href: "https://cdn.simplecss.org/simple.min.css", rel: "stylesheet"}/
     = haml :local_css
   
     %script{src: "https://kit.fontawesome.com/96d20ed16f.js", crossorigin: "anonymous"}
-    
-    :css
-      @import url('https://static.omg.lol/type/fontawesome-free/css/all.css');
-      @import url('https://fonts.googleapis.com/css2?family=Neuton:wght@700&display=swap');
-      @import url('https://fonts.googleapis.com/css2?family=Fira+Mono&display=swap');
-      @import url('https://unpkg.com/@catppuccin/palette@0.1.4/css/catppuccin.css');      /* or using unpkg.com */
-            
-      body {
-        color: var(--ctp-mocha-text);
-        background: var(--ctp-mocha-base);
-        font-family: "Fira Mono";
-      }
-      
-      body > header {
-        color: var(--ctp-mocha-text);
-        background: var(--ctp-mocha-base);
-      }
-      
-      blockquote {
-      margin: 2rem 0 2rem 2rem;
-      padding: .4rem .8rem;
-      border-left: .35rem solid var(--ctp-mocha-yellow);
-      color: var(--ctp-mocha-text);
-      font-style: italic;
-      }
-      
-      aside {
-          font-size: 1rem;
-          width: 30%;
-          padding: 0 15px;
-          margin-left: 15px;
-          float: right;
+
+    :javascript
+      // theme: respect saved choice → falls through to prefers-color-scheme.
+      // runs inline before paint to avoid a flash of the wrong theme.
+      (function() {
+        try {
+          var saved = localStorage.getItem('imgup-theme');
+          if (saved === 'light' || saved === 'dark') {
+            document.documentElement.setAttribute('data-theme', saved);
+          }
+        } catch (e) {}
+        window.imgupToggleTheme = function() {
+          var r = document.documentElement;
+          var cur = r.getAttribute('data-theme');
+          var sysLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+          var next;
+          if (cur === 'light')      next = 'dark';
+          else if (cur === 'dark')  next = 'light';
+          else                       next = sysLight ? 'dark' : 'light';
+          r.setAttribute('data-theme', next);
+          try { localStorage.setItem('imgup-theme', next); } catch (e) {}
+        };
+      })();
+
+    :javascript
+      // copy-to-clipboard for the contact-grid icon buttons. each .copy-icon-btn
+      // carries its snippet text on data-copy-text.
+      document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('click', function(e) {
+          var btn = e.target.closest('.copy-icon-btn');
+          if (!btn) return;
+          e.preventDefault();
+          var text = btn.dataset.copyText;
+          if (text === undefined) return;
+
+          var done = function(ok) {
+            btn.classList.toggle('is-copied', ok);
+            btn.classList.toggle('is-failed', !ok);
+            setTimeout(function() {
+              btn.classList.remove('is-copied', 'is-failed');
+            }, 1400);
+          };
+
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function(){done(true);}, function(){done(false);});
+          } else {
+            try {
+              var ta = document.createElement('textarea');
+              ta.value = text;
+              ta.style.position = 'fixed'; ta.style.opacity = '0';
+              document.body.appendChild(ta);
+              ta.select();
+              var ok = document.execCommand('copy');
+              document.body.removeChild(ta);
+              done(ok);
+            } catch (err) { done(false); }
+          }
+        });
+
+        // lightbox — click any .contact-card__photo to open
+        var dialog = document.getElementById('lightbox');
+        if (dialog) {
+          var img = dialog.querySelector('.lightbox__img');
+          var closeBtn = dialog.querySelector('.lightbox__close');
+
+          document.addEventListener('click', function(e) {
+            var trigger = e.target.closest('.contact-card__photo');
+            if (!trigger) return;
+            var src = trigger.dataset.lightboxSrc;
+            var alt = trigger.dataset.lightboxAlt || '';
+            if (!src) return;
+            img.src = src;
+            img.alt = alt;
+            if (typeof dialog.showModal === 'function') dialog.showModal();
+            else dialog.setAttribute('open', 'open');
+          });
+
+          // close on backdrop click (the dialog itself is the backdrop area)
+          dialog.addEventListener('click', function(e) {
+            if (e.target === dialog) dialog.close();
+          });
+          if (closeBtn) closeBtn.addEventListener('click', function() { dialog.close(); });
+
+          // free up the image when closing so we don't keep a big buffer in memory
+          dialog.addEventListener('close', function() { img.src = ''; img.alt = ''; });
         }
-      
-        aside, details, pre, progress {
-          background-color: var(--ctp-mocha-surface0);
-          border: 1px solid var(--border);
-          border-radius: 5px;
-          margin-bottom: 1rem;
-      }
-      
-      mark {
-      padding: 2px 5px;
-      border-radius: 4px;
-      background-color: var(--ctp-mocha-yellow);
-      }
-      
-      
-      .meteor {
-        color: var(--ctp-mocha-red);
-        }
-      
-      a, a:visited {
-        color: var(--ctp-mocha-red);
-        }
-      
-      h1, h2, h3, h4, h5, h6 {
-        font-family: 'Neuton', serif;
-        margin: 1rem 0;
-        color: var(--ctp-mocha-lavendar);
-        }
-      
-      body { 
-          grid-template-columns: 0fr 80% 0fr;
-          place-content: center;
-        }
-      
-      article { font-family: "Fira Mono"; 
-                border-bottom:none;
-                border-left: none;
-                border-top:none;
-                border-right:none;
-                padding-bottom:2em;
+
+        // drop-target on the upload form (enhances the file input)
+        var form = document.getElementById('upload-form');
+        var fileInput = document.getElementById('upload-file');
+        if (form && fileInput) {
+          var depth = 0;  // dragenter/leave fire for descendants too; track nesting
+          var setActive = function(on) { form.classList.toggle('is-drop-target', !!on); };
+          ['dragenter','dragover'].forEach(function(ev) {
+            form.addEventListener(ev, function(e) {
+              if (!e.dataTransfer || !Array.from(e.dataTransfer.types || []).includes('Files')) return;
+              e.preventDefault();
+              if (ev === 'dragenter') depth++;
+              setActive(true);
+            });
+          });
+          form.addEventListener('dragleave', function(e) {
+            depth = Math.max(0, depth - 1);
+            if (depth === 0) setActive(false);
+          });
+          form.addEventListener('drop', function(e) {
+            if (!e.dataTransfer || !e.dataTransfer.files || !e.dataTransfer.files.length) return;
+            e.preventDefault();
+            depth = 0; setActive(false);
+            var dt = new DataTransfer();
+            dt.items.add(e.dataTransfer.files[0]);
+            fileInput.files = dt.files;
+            fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+          });
+          // also stop the browser from navigating away when dropping outside the form
+          ['dragover','drop'].forEach(function(ev) {
+            window.addEventListener(ev, function(e) {
+              if (e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files')) {
+                if (!form.contains(e.target)) e.preventDefault();
               }
-      
-            
-      /* Responsive layout - makes the two columns stack on top of each other instead of next to each other */
-      @media screen and (max-width: 600px) {
-        .column-left, .column-right {
-          width: 100%;
+            });
+          });
         }
-        body { 
-          grid-template-columns: 0fr 95% 0fr;
-          place-content: center;
-        }
-      }
+
+        // a quiet hello to anyone who opens the console.
+        try {
+          if (console && console.log) {
+            console.log('%cimgup', 'font: 700 18px/1 ui-serif, Georgia, serif; color: #b8463b; letter-spacing: -0.02em;');
+            console.log('%csafelight on. shoot something.', 'color: #888; font: 12px/1.4 ui-monospace, Menlo, monospace;');
+          }
+        } catch (e) {}
+      });
   %body
     %header
-      %a{:href => "/"}
-        %h1.weblog-title
+      %h1.weblog-title
+        %a{href: "/"}
           %i.fa-image.fa-solid.meteor
-           imgup
-      %p An image management tool
+          imgup
       
       
       = haml :"_partials/app_nav"
           
     %main
-      
+
       =yield
+
+    %dialog#lightbox.lightbox
+      %button.lightbox__close{type: "button", "aria-label" => "close"}
+        %i.fa-solid.fa-xmark
+      %img.lightbox__img{src: "", alt: ""}
 
     %footer
       %p
-        Made by
+        made by
         %a{href: "https://mph.omg.lol"} mph
+        ·
+        %button.theme-toggle{type: "button",
+                              onclick: "imgupToggleTheme()",
+                              "aria-label" => "toggle theme",
+                              title: "toggle theme"}
+          %i.fa-solid.fa-circle-half-stroke
