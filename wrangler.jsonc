@@ -9,6 +9,8 @@
   },
   "observability": {
     "enabled": true
-  }
-  // routes intentionally omitted at this stage. Custom domain added during cutover (Task 18).
+  },
+  "routes": [
+    { "pattern": "imgup.puddingtime.net", "custom_domain": true }
+  ]
 }
