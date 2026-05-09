@@ -4,3 +4,8 @@ settings.yaml
 .env_oauth
 .pid
 env
+
+node_modules/
+.dev.vars
+.wrangler/
+dist/
