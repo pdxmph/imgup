@@ -64,7 +64,7 @@
     </header>
 
     <main>
-      <section id="upload">
+      <section id="upload" class="view">
         <form id="upload-form" class="upload-form" enctype="multipart/form-data">
           <div class="field">
             <label class="upload-label" for="upload-title">title</label>
@@ -84,8 +84,10 @@
           <input id="upload-submit" type="submit" value="upload" />
           <p id="upload-status" class="upload-status">uploading to smugmug — this can take a moment.</p>
         </form>
+      </section>
 
-        <article id="result" class="contact-card contact-card--solo" hidden>
+      <section id="result" class="view" hidden>
+        <article class="contact-card contact-card--solo">
           <p class="upload-success">uploaded. snippets below.</p>
           <button id="result-photo" class="contact-card__photo" type="button" data-lightbox-src="" data-lightbox-alt="just-uploaded photo" aria-label="view photo larger">
             <span class="photo-frame">
@@ -106,7 +108,7 @@
         </article>
       </section>
 
-      <section id="recent">
+      <section id="recent" class="view" hidden>
         <h2 class="recent-heading">recent</h2>
         <div id="recent-grid" class="contact-grid" aria-live="polite"></div>
         <section id="recent-empty" class="recent-empty" hidden>

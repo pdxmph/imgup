@@ -2,6 +2,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,400;9..144,500;9..144,700;9..144,900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&display=swap');
 
+/* SPA shim: ensure the HTML `hidden` attribute beats display: flex / grid
+   on .contact-card and similar component rules below. */
+[hidden] { display: none !important; }
+
 /* ----------------------------------------------------------------
    darkroom × terminal palette — OKLCH, warm-tinted neutrals,
    single oxblood-red signature accent (the safelight).

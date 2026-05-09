@@ -5,14 +5,39 @@
 // inline scripts — keep behavior parity.
 
 const RECENT_COUNT = 10; // must match worker CACHED_COUNTS in worker/index.ts
+const VIEWS = ["upload", "result", "recent"];
 
 document.addEventListener("DOMContentLoaded", () => {
   initCopyButtons();
   initLightbox();
   initDropTarget();
   initUploadForm();
+  initRouter();
   loadRecent();
 });
+
+// ---------- routing ----------
+
+function initRouter() {
+  applyRoute();
+  window.addEventListener("hashchange", applyRoute);
+}
+
+function applyRoute() {
+  const hash = (location.hash || "#upload").replace(/^#/, "");
+  const target = VIEWS.includes(hash) ? hash : "upload";
+
+  // Don't land on #result without a result to show — bounce back to upload.
+  if (target === "result" && !document.getElementById("result-thumb").src) {
+    location.hash = "#upload";
+    return;
+  }
+
+  VIEWS.forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.hidden = id !== target;
+  });
+}
 
 // ---------- upload ----------
 
@@ -60,6 +85,7 @@ function initUploadForm() {
 
       renderResult(body);
       form.reset();
+      location.hash = "#result";
       await loadRecent();
     } catch (err) {
       alert(`upload failed: ${err.message}`);
@@ -89,8 +115,7 @@ function renderResult({ url, markdown, html, org }) {
     else if (target === "html") btn.dataset.copyText = html;
   });
 
-  result.hidden = false;
-  result.scrollIntoView({ behavior: "smooth", block: "start" });
+  // visibility is controlled by the router; just populate fields here.
 }
 
 // ---------- recent ----------
