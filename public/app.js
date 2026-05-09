@@ -37,6 +37,11 @@ function applyRoute() {
     const el = document.getElementById(id);
     if (el) el.hidden = id !== target;
   });
+
+  document.querySelectorAll("body > header nav a").forEach((a) => {
+    const li = a.closest("li");
+    if (li) li.hidden = a.getAttribute("href") === `#${target}`;
+  });
 }
 
 // ---------- upload ----------
