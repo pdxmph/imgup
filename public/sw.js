@@ -6,7 +6,7 @@
 // converts the failed fetch into a top-level navigation so the browser can
 // follow Access's challenge instead of resolving to a broken Response.
 
-const CACHE_VERSION = "2026-05-09-7"; // bump when shipping frontend changes
+const CACHE_VERSION = "2026-05-09-8"; // bump when shipping frontend changes
 const CACHE_NAME = `imgup-shell-v${CACHE_VERSION}`;
 
 const SHELL = [

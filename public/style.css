@@ -502,6 +502,8 @@ article {
 
 /* icon-only copy button — for the contact grid */
 .copy-icon-btn {
+  -webkit-appearance: none;
+  appearance: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -648,6 +650,8 @@ article {
 
 /* theme toggle — sits in the header nav alongside the link buttons */
 .theme-toggle {
+  -webkit-appearance: none;
+  appearance: none;
   background: transparent;
   color: var(--accent);
   border: 1px solid var(--border);
