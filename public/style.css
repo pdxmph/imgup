@@ -182,10 +182,12 @@ body > header nav button {
   letter-spacing: .04em;
   cursor: pointer;
 }
-body > header nav a:hover,
-body > header nav button:hover {
-  border-color: var(--accent);
-  background: var(--surface);
+@media (hover: hover) {
+  body > header nav a:hover,
+  body > header nav button:hover {
+    border-color: var(--accent);
+    background: var(--surface);
+  }
 }
 
 input, textarea, select {

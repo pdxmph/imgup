@@ -29,7 +29,7 @@
             document.documentElement.setAttribute("data-theme", saved);
           }
         } catch (e) {}
-        window.imgupToggleTheme = function () {
+        window.imgupToggleTheme = function (ev) {
           var r = document.documentElement;
           var cur = r.getAttribute("data-theme");
           var sysLight = window.matchMedia("(prefers-color-scheme: light)").matches;
@@ -40,6 +40,11 @@
           r.setAttribute("data-theme", next);
           try { localStorage.setItem("imgup-theme", next); } catch (e) {}
           syncMeta();
+          // Drop focus / sticky :hover from the toggle so its color
+          // treatment matches the other nav buttons after the tap.
+          if (ev && ev.currentTarget && typeof ev.currentTarget.blur === "function") {
+            ev.currentTarget.blur();
+          }
         };
         // Sync once after the meta tag is parsed; if the meta isn't in the DOM yet
         // (script runs before the link/meta below), retry on DOMContentLoaded.
@@ -89,7 +94,7 @@
             </a>
           </li>
           <li>
-            <button type="button" onclick="imgupToggleTheme()" aria-label="toggle theme" title="toggle theme">
+            <button type="button" onclick="imgupToggleTheme(event)" aria-label="toggle theme" title="toggle theme">
               <i class="fa-solid fa-circle-half-stroke"></i>
             </button>
           </li>
