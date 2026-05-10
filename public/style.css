@@ -158,21 +158,32 @@ body > header nav ul {
   gap: var(--space-2);
 }
 body > header nav li { margin: 0; }
-body > header nav a, body > header nav a:visited {
+body > header nav a,
+body > header nav a:visited,
+body > header nav button {
+  -webkit-appearance: none;
+  appearance: none;
+  box-sizing: border-box;
   margin: 0;
+  background: transparent;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--accent);
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: var(--space-2);
   padding: var(--space-1) var(--space-3);
+  min-height: calc(var(--lh-body) * 1em + var(--space-1) * 2 + 2px);
   text-decoration: none;
   font-family: var(--font-mono);
   font-size: var(--fs-sm);
+  line-height: var(--lh-body);
   letter-spacing: .04em;
+  cursor: pointer;
 }
-body > header nav a:hover {
+body > header nav a:hover,
+body > header nav button:hover {
   border-color: var(--accent);
   background: var(--surface);
 }
@@ -647,23 +658,6 @@ article {
 /* recent — empty state */
 .recent-empty { color: var(--text-muted); padding: 3rem 0; }
 .recent-empty h2 { color: var(--text); }
-
-/* theme toggle — sits in the header nav alongside the link buttons */
-.theme-toggle {
-  -webkit-appearance: none;
-  appearance: none;
-  background: transparent;
-  color: var(--accent);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: var(--space-1) var(--space-3);
-  font-family: var(--font-mono);
-  font-size: var(--fs-sm);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-}
-.theme-toggle:hover { color: var(--accent-hover); border-color: var(--accent); background: var(--surface); }
 
 @media screen and (max-width: 760px) {
   body > header, body > main {
